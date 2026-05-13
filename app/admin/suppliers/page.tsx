@@ -291,7 +291,17 @@ export default function SuppliersPage() {
                         </span>
                       </td>
                       <td className="px-3 py-3">
+                        <div className="flex items-center gap-1">
                         <button onClick={() => openEdit(s)} className="btn-ghost text-xs px-2">Edit</button>
+                        {deleteConfirm === s.id ? (
+                          <>
+                            <button onClick={() => confirmDelete(s.id)} className="text-xs text-red-600 font-semibold hover:underline px-1">Delete?</button>
+                            <button onClick={() => setDeleteConfirm(null)} className="text-xs text-gray-400 hover:underline px-1">Cancel</button>
+                          </>
+                        ) : (
+                          <button onClick={() => setDeleteConfirm(s.id)} className="text-xs text-red-400 hover:text-red-600 px-1">✕</button>
+                        )}
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -95,7 +95,7 @@ export default function SubmissionPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <Link href="/" className="btn-ghost text-xs px-2">
               ← Dashboard
@@ -111,7 +111,7 @@ export default function SubmissionPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-6 sm:px-10 space-y-6">
+      <main className="mx-auto max-w-3xl px-4 py-6 space-y-6">
         {/* Meta */}
         <div className="card p-5 space-y-3">
           <h1 className="text-xl font-bold text-gray-900">{submission.checklist?.name}</h1>

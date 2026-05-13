@@ -136,6 +136,7 @@ export default function Dashboard() {
             <NavLink href="/admin/goods-in">Goods In</NavLink>
             <NavLink href="/admin/goods-out">Goods Out</NavLink>
             <NavLink href="/admin/traceability">Traceability</NavLink>
+            <NavLink href="/admin/suppliers">Suppliers</NavLink>
             <NavLink href="/print-qr">Print QR</NavLink>
             <NavLink href="/admin/checklists">Checklists</NavLink>
             <LogoutButton />

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { Checklist, Submission, Ingredient, IngredientLot, Dispatch } from "@/lib/types";
-import { frequencyLabel, frequencyBadgeColor, formatDateTime } from "@/lib/utils";
+import { frequencyLabel, frequencyBadgeColor } from "@/lib/utils";
 
 const SKUS = [
   "Garlic Chilli Oil",
@@ -148,14 +148,15 @@ export default function Dashboard() {
         {/* ── Stat cards ────────────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCard label="Checklists" value={checklists.length} loading={loading} />
-          <StatCard label="Today's submissions" value={todayCount} loading={loading} />
+          <StatCard label="Today's submissions" value={todayCount} loading={loading} href="/dashboard" />
           <StatCard
             label="Awaiting sign-off"
             value={pendingSignOff.length}
             loading={loading}
             accent={pendingSignOff.length > 0 ? "amber" : "green"}
+            href="/dashboard?filter=pending"
           />
-          <StatCard label="Recent submissions" value={recentSubmissions.length} loading={loading} />
+          <StatCard label="Recent submissions" value={recentSubmissions.length} loading={loading} href="/dashboard" />
         </div>
 
         {/* ── Main two-column layout ────────────────────────────── */}
@@ -257,60 +258,6 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Awaiting sign-off */}
-            <div>
-              <h2 className="mb-3 text-lg font-semibold text-gray-900">Awaiting Sign-Off</h2>
-              {loading ? (
-                <div className="card p-4 text-center text-sm text-gray-500">Loading…</div>
-              ) : pendingSignOff.length === 0 ? (
-                <div className="card p-4 text-center text-sm text-green-600 font-medium">All caught up ✓</div>
-              ) : (
-                <div className="space-y-2">
-                  {pendingSignOff.slice(0, 8).map(s => (
-                    <Link key={s.id} href={`/submission/${s.id}`}
-                      className="card flex items-start gap-3 p-3 hover:border-brand/40 hover:shadow-md transition"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{s.checklist?.name}</p>
-                        <p className="text-xs text-gray-500">{s.submitted_by} · {formatDateTime(s.submitted_at)}</p>
-                      </div>
-                      <span className="badge bg-amber-100 text-amber-700 shrink-0">Review</span>
-                    </Link>
-                  ))}
-                  {pendingSignOff.length > 8 && (
-                    <p className="text-xs text-center text-gray-500 pt-1">+{pendingSignOff.length - 8} more</p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Recent submissions */}
-            <div>
-              <h2 className="mb-3 text-lg font-semibold text-gray-900">Recent Submissions</h2>
-              {loading ? (
-                <div className="card p-4 text-center text-sm text-gray-500">Loading…</div>
-              ) : recentSubmissions.length === 0 ? (
-                <div className="card p-4 text-center text-sm text-gray-500">No submissions yet.</div>
-              ) : (
-                <div className="space-y-2">
-                  {recentSubmissions.map(s => (
-                    <Link key={s.id} href={`/submission/${s.id}`}
-                      className="card flex items-start gap-3 p-3 hover:border-brand/40 hover:shadow-md transition"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{s.checklist?.name}</p>
-                        <p className="text-xs text-gray-500">{s.submitted_by} · {formatDateTime(s.submitted_at)}</p>
-                      </div>
-                      {s.signed_off_at
-                        ? <span className="badge bg-green-100 text-green-700 shrink-0">Signed off</span>
-                        : <span className="badge bg-amber-100 text-amber-700 shrink-0">Pending</span>
-                      }
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
           </div>
         </div>
       </main>
@@ -359,23 +306,26 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   );
 }
 
-function StatCard({ label, value, loading, accent }: {
-  label: string; value: number; loading: boolean; accent?: "amber" | "green";
+function StatCard({ label, value, loading, accent, href }: {
+  label: string; value: number; loading: boolean; accent?: "amber" | "green"; href?: string;
 }) {
   const colors = {
     amber: { border: "border-amber-300", bg: "bg-amber-50", text: "text-amber-900", label: "text-amber-700" },
     green: { border: "border-green-200", bg: "bg-green-50", text: "text-green-900", label: "text-green-700" },
   };
   const c = accent ? colors[accent] : null;
-  return (
-    <div className={`rounded-xl border-2 p-4 shadow-sm ${c ? `${c.border} ${c.bg}` : "border-gray-200 bg-white"}`}>
+  const className = `rounded-xl border-2 p-4 shadow-sm transition ${c ? `${c.border} ${c.bg}` : "border-gray-200 bg-white"} ${href ? "hover:shadow-md hover:scale-[1.02] cursor-pointer" : ""}`;
+  const content = (
+    <>
       <p className={`text-xs font-semibold uppercase tracking-wide ${c ? c.label : "text-gray-500"}`}>{label}</p>
       {loading
         ? <div className="mt-2 h-8 w-14 animate-pulse rounded bg-gray-200" />
         : <p className={`mt-1 text-3xl font-bold ${c ? c.text : "text-gray-900"}`}>{value}</p>
       }
-    </div>
+    </>
   );
+  if (href) return <Link href={href} className={className}>{content}</Link>;
+  return <div className={className}>{content}</div>;
 }
 
 function StockBar({ value, max }: { value: number; max: number }) {

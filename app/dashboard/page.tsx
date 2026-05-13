@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { Checklist, Submission, Answer, Question } from "@/lib/types";
 import { formatDateTime, frequencyLabel, frequencyBadgeColor } from "@/lib/utils";
 
 type SubmissionWithChecklist = Submission & { checklist: Checklist };
 
-export default function SubmissionsPage() {
+function SubmissionsPageInner() {
+  const searchParams = useSearchParams();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionWithChecklist[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [filterChecklist, setFilterChecklist] = useState("");
-  const [filterSigned, setFilterSigned] = useState<"all" | "pending" | "signed">("all");
+  const [filterSigned, setFilterSigned] = useState<"all" | "pending" | "signed">(
+    searchParams.get("filter") === "pending" ? "pending" : "all"
+  );
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -264,5 +268,13 @@ export default function SubmissionsPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function SubmissionsPage() {
+  return (
+    <Suspense>
+      <SubmissionsPageInner />
+    </Suspense>
   );
 }

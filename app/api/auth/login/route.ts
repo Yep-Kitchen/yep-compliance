@@ -17,7 +17,7 @@ async function expectedToken(): Promise<string> {
 export async function POST(request: NextRequest) {
   const { password, from } = await request.json();
 
-  if (password !== process.env.AUTH_PASSWORD) {
+  if (password !== (process.env.AUTH_PASSWORD ?? "changeme")) {
     return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
   }
 

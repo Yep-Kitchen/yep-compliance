@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { Checklist, Submission, Ingredient, IngredientLot, Dispatch } from "@/lib/types";
 import { frequencyLabel, frequencyBadgeColor, formatDateTime } from "@/lib/utils";
@@ -165,6 +166,7 @@ export default function Dashboard() {
             <NavLink href="/admin/traceability">Traceability</NavLink>
             <NavLink href="/print-qr">Print QR</NavLink>
             <NavLink href="/admin/checklists">Checklists</NavLink>
+            <LogoutButton />
           </nav>
         </div>
       </header>
@@ -407,6 +409,23 @@ function isThisWeek(iso: string) {
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
+
+function LogoutButton() {
+  const router = useRouter();
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
+  return (
+    <button
+      onClick={handleLogout}
+      className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-500 shadow-sm transition hover:bg-red-50 hover:border-red-300 hover:text-red-600 active:scale-95"
+    >
+      Sign out
+    </button>
+  );
+}
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (

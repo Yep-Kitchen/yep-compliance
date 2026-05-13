@@ -74,6 +74,7 @@ export default function StockPage() {
     setSaving(false);
     if (error) {
       setSaveError(error.message);
+      alert("Save failed: " + error.message);
       return;
     }
     setEditing(null);

@@ -49,23 +49,23 @@ const NAV = [
 ];
 
 const FREQ_GROUPS = [
-  { key: "daily",      label: "Daily",                      freqs: ["per_shift_am", "per_shift_pm", "per_shift_eod"],  color: "blue"   },
-  { key: "weekly",     label: "Weekly",                     freqs: ["weekly"],                                          color: "teal"   },
+  { key: "daily",      label: "Daily",                      freqs: ["per_shift_am", "per_shift_pm", "per_shift_eod"],  color: "sky"    },
+  { key: "weekly",     label: "Weekly",                     freqs: ["weekly"],                                          color: "indigo" },
   { key: "adhoc",      label: "Adhoc",                      freqs: ["adhoc", "monthly"],                                color: "emerald"},
   { key: "production", label: "Production & Traceability",  freqs: ["per_batch", "per_delivery", "per_dispatch"],       color: "violet" },
-  { key: "people",     label: "People",                     freqs: ["per_new_start"],                                   color: "amber"  },
+  { key: "people",     label: "People",                     freqs: ["per_new_start"],                                   color: "orange" },
   { key: "incidents",  label: "Incidents",                  freqs: ["per_complaint", "per_corrective_action"],          color: "rose"   },
 ] as const;
 
 type GroupColor = typeof FREQ_GROUPS[number]["color"];
 
 const GROUP_STYLES: Record<GroupColor, { header: string; dot: string; badge: string }> = {
-  blue:   { header: "border-blue-200 bg-blue-50 text-blue-800",       dot: "bg-blue-500",    badge: "bg-blue-100 text-blue-800"    },
-  teal:   { header: "border-teal-200 bg-teal-50 text-teal-800",       dot: "bg-teal-500",    badge: "bg-teal-100 text-teal-800"    },
+  sky:    { header: "border-sky-200 bg-sky-50 text-sky-800",           dot: "bg-sky-500",     badge: "bg-sky-100 text-sky-800"      },
+  indigo: { header: "border-indigo-200 bg-indigo-50 text-indigo-800",  dot: "bg-indigo-500",  badge: "bg-indigo-100 text-indigo-800"},
   emerald:{ header: "border-emerald-200 bg-emerald-50 text-emerald-800", dot: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-800" },
-  violet: { header: "border-violet-200 bg-violet-50 text-violet-800", dot: "bg-violet-500",  badge: "bg-violet-100 text-violet-800" },
-  amber:  { header: "border-amber-200 bg-amber-50 text-amber-800",    dot: "bg-amber-500",   badge: "bg-amber-100 text-amber-800"  },
-  rose:   { header: "border-rose-200 bg-rose-50 text-rose-800",       dot: "bg-rose-500",    badge: "bg-rose-100 text-rose-800"    },
+  violet: { header: "border-violet-200 bg-violet-50 text-violet-800",  dot: "bg-violet-500",  badge: "bg-violet-100 text-violet-800"},
+  orange: { header: "border-orange-200 bg-orange-50 text-orange-800",  dot: "bg-orange-500",  badge: "bg-orange-100 text-orange-800"},
+  rose:   { header: "border-rose-200 bg-rose-50 text-rose-800",        dot: "bg-rose-500",    badge: "bg-rose-100 text-rose-800"   },
 };
 
 // ── Types ─────────────────────────────────────────────────────────────────────

@@ -47,7 +47,14 @@ export default function ChecklistPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [submittedBy, setSubmittedBy] = useState("");
+  // Derive submitted_by from the first name-like answer in the checklist
+  function getSubmittedBy(qs: Question[], ans: AnswerMap): string {
+    const nameQ = qs.find(q => /name|operator|staff|packer|person/i.test(q.label) && q.type === "text");
+    if (nameQ && ans[nameQ.id]?.trim()) return ans[nameQ.id].trim();
+    const anyText = qs.find(q => q.type === "text" && ans[q.id]?.trim());
+    if (anyText) return ans[anyText.id].trim();
+    return "Staff";
+  }
 
   // Ingredient lots for production checklists (ingredient name → lots)
   const [ingredientLots, setIngredientLots] = useState<Record<string, IngredientLot[]>>({});
@@ -131,16 +138,10 @@ export default function ChecklistPage() {
   function handleAnswerChange(questionId: string, val: string) {
     setAnswers((prev) => {
       const next = { ...prev, [questionId]: val };
-      if (isProduction && !showResumePrompt) scheduleDraftSave(next, submittedBy);
+      if (isProduction && !showResumePrompt) scheduleDraftSave(next, getSubmittedBy(questions, next));
       return next;
     });
     if (errors[questionId]) setErrors((prev) => { const e = { ...prev }; delete e[questionId]; return e; });
-  }
-
-  function handleNameChange(val: string) {
-    setSubmittedBy(val);
-    if (isProduction && !showResumePrompt) scheduleDraftSave(answers, val);
-    if (errors["__name"]) setErrors((prev) => { const e = { ...prev }; delete e["__name"]; return e; });
   }
 
   async function resumeDraft() {
@@ -148,7 +149,6 @@ export default function ChecklistPage() {
     setDraftId(existingDraft.id);
     draftIdRef.current = existingDraft.id;
     setAnswers(existingDraft.answers ?? {});
-    setSubmittedBy(existingDraft.started_by ?? "");
     setShowResumePrompt(false);
   }
 
@@ -165,13 +165,11 @@ export default function ChecklistPage() {
   function calcProgress() {
     const required = questions.filter((q) => q.required);
     const filledCount = required.filter((q) => isFieldFilled(q, answers[q.id] ?? "")).length;
-    const nameOk = submittedBy.trim().length > 0;
-    return { filled: filledCount + (nameOk ? 1 : 0), total: required.length + 1 };
+    return { filled: filledCount, total: required.length };
   }
 
   function validate(): boolean {
     const errs: Record<string, string> = {};
-    if (!submittedBy.trim()) errs["__name"] = "Please enter your name";
     for (const q of questions) {
       if (!q.required) continue;
       const val = answers[q.id] ?? "";
@@ -231,7 +229,7 @@ export default function ChecklistPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         checklist_id: id,
-        submitted_by: submittedBy.trim(),
+        submitted_by: getSubmittedBy(questions, processedAnswers),
         answers: questions.map((q) => ({
           question_id: q.id,
           value: processedAnswers[q.id] ?? null,
@@ -339,13 +337,12 @@ export default function ChecklistPage() {
             {isProduction ? "Batch record submitted!" : "Submitted!"}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {checklist.name} has been recorded. Thank you, {submittedBy}.
+            {checklist.name} has been recorded.
           </p>
           <button
             onClick={() => {
               setSubmitted(false);
               setAnswers({});
-              setSubmittedBy("");
               setErrors({});
               setDraftId(null);
               draftIdRef.current = null;
@@ -419,22 +416,6 @@ export default function ChecklistPage() {
               {checklist.description}
             </p>
           )}
-
-          {/* Name field */}
-          <div data-error={errors["__name"] ? true : undefined}>
-            <label className="label">
-              Your name <span className="text-brand">*</span>
-            </label>
-            <input
-              type="text"
-              value={submittedBy}
-              onChange={(e) => handleNameChange(e.target.value)}
-              className={`input ${errors["__name"] ? "border-red-300" : ""}`}
-              placeholder="Full name"
-              autoComplete="name"
-            />
-            {errors["__name"] && <p className="mt-1 text-xs text-red-600">{errors["__name"]}</p>}
-          </div>
 
           {/* Questions */}
           {questions.map((q) => (

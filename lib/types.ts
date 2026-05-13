@@ -79,6 +79,8 @@ export interface TeamMember {
 export interface Ingredient {
   id: string;
   name: string;
+  price_per_kg: number | null;
+  supplier_id: string | null;
   created_at: string;
 }
 

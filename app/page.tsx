@@ -172,7 +172,7 @@ export default function Dashboard() {
                   <li>
                     <button
                       onClick={() => setProdMenuOpen(o => !o)}
-                      className="w-full flex items-center justify-between rounded-md px-2.5 py-2 text-sm text-white bg-brand hover:bg-brand/90 transition-colors font-medium"
+                      className="w-full flex items-center justify-between rounded-md px-2.5 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                     >
                       Begin Production
                       <svg className={`h-3.5 w-3.5 transition-transform ${prodMenuOpen ? "rotate-180" : ""}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6l4 4 4-4"/></svg>

@@ -29,18 +29,14 @@ export default function Dashboard() {
   const [recentSubmissions, setRecentSubmissions] = useState<(Submission & { checklist: Checklist })[]>([]);
   const [pendingSignOff, setPendingSignOff] = useState<(Submission & { checklist: Checklist })[]>([]);
   const [openDrafts, setOpenDrafts] = useState<Array<{ id: string; checklist_id: string; started_by: string; last_saved_at: string; checklist?: Checklist }>>([]);
-  const [ingredients, setIngredients] = useState<IngredientWithLots[]>([]);
   const [skuStock, setSkuStock] = useState<SkuStock[]>([]);
   const [loading, setLoading] = useState(true);
-  // expanded = true means open; default closed
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function load() {
-    const [clRes, subRes, draftRes, ingRes, lotRes, dispRes, batchSubRes] = await Promise.all([
+    const [clRes, subRes, draftRes, dispRes, batchSubRes] = await Promise.all([
       supabase.from("checklists").select("*").eq("active", true).order("name"),
       supabase
         .from("submissions")
@@ -52,8 +48,6 @@ export default function Dashboard() {
         .select("*, checklist:checklists(name, category)")
         .order("last_saved_at", { ascending: false })
         .limit(10),
-      supabase.from("ingredients").select("*").order("name"),
-      supabase.from("ingredient_lots").select("*").order("julian_code"),
       supabase.from("dispatches").select("product, total_units"),
       supabase
         .from("submissions")
@@ -71,24 +65,11 @@ export default function Dashboard() {
 
     if (draftRes.data) setOpenDrafts(draftRes.data as never);
 
-    if (ingRes.data && lotRes.data) {
-      const lots = lotRes.data as IngredientLot[];
-      const byIng: Record<string, IngredientLot[]> = {};
-      for (const l of lots) {
-        if (!byIng[l.ingredient_id]) byIng[l.ingredient_id] = [];
-        byIng[l.ingredient_id].push(l);
-      }
-      setIngredients(
-        (ingRes.data as Ingredient[]).map(ing => ({ ...ing, lots: byIng[ing.id] ?? [] }))
-      );
-    }
-
     if (batchSubRes.data && dispRes.data) {
       const dispatchedByProduct: Record<string, number> = {};
       for (const d of (dispRes.data as { product: string; total_units: number }[])) {
         dispatchedByProduct[d.product] = (dispatchedByProduct[d.product] ?? 0) + d.total_units;
       }
-
       const producedByProduct: Record<string, number> = {};
       for (const sub of (batchSubRes.data as never as Array<{
         checklist: { name: string; category: string } | null;
@@ -109,7 +90,6 @@ export default function Dashboard() {
           } catch { /* ignore */ }
         }
       }
-
       setSkuStock(
         SKUS.map(name => {
           const produced = producedByProduct[name] ?? 0;
@@ -135,15 +115,7 @@ export default function Dashboard() {
     setExpanded(prev => ({ ...prev, [cat]: !prev[cat] }));
   }
 
-  const totalRawMaterialsKg = ingredients.reduce(
-    (sum, ing) => sum + ing.lots.reduce((s, l) => s + l.quantity_remaining_g, 0), 0
-  ) / 1000;
-
   const totalFinishedUnits = skuStock.reduce((s, sku) => s + sku.inStock, 0);
-  const outOfStockRaw = ingredients.filter(ing => {
-    const total = ing.lots.reduce((s, l) => s + l.quantity_remaining_g, 0);
-    return ing.lots.length > 0 && total === 0;
-  }).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -160,7 +132,7 @@ export default function Dashboard() {
           </div>
           <nav className="flex items-center gap-2 flex-wrap justify-end">
             <NavLink href="/dashboard">All Submissions</NavLink>
-            <NavLink href="/admin/stock">Stock</NavLink>
+            <NavLink href="/admin/stock">Raw Materials</NavLink>
             <NavLink href="/admin/goods-in">Goods In</NavLink>
             <NavLink href="/admin/goods-out">Goods Out</NavLink>
             <NavLink href="/admin/traceability">Traceability</NavLink>
@@ -171,103 +143,26 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
 
-        {/* ── Key stats ─────────────────────────────────────────── */}
+        {/* ── Stat cards ────────────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard label="Checklists" value={checklists.length} loading={loading} color="gray" />
-          <StatCard label="Today's submissions" value={todayCount} loading={loading} color="blue" />
-          <StatCard label="Pending sign-off" value={pendingSignOff.length} loading={loading} color={pendingSignOff.length > 0 ? "amber" : "gray"} />
-          <StatCard label="This week" value={recentSubmissions.filter(s => isThisWeek(s.submitted_at)).length} loading={loading} color="green" />
+          <StatCard label="Checklists" value={checklists.length} loading={loading} />
+          <StatCard label="Today's submissions" value={todayCount} loading={loading} />
+          <StatCard
+            label="Awaiting sign-off"
+            value={pendingSignOff.length}
+            loading={loading}
+            accent={pendingSignOff.length > 0 ? "amber" : "green"}
+          />
+          <StatCard label="Recent submissions" value={recentSubmissions.length} loading={loading} />
         </div>
 
-        {/* ── Inventory overview ────────────────────────────────── */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Inventory</h2>
-          <div className="grid gap-6 lg:grid-cols-2">
+        {/* ── Main two-column layout ────────────────────────────── */}
+        <div className="grid gap-6 lg:grid-cols-2">
 
-            {/* Finished goods */}
-            <div className="card overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-700">Finished goods</h3>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500">{totalFinishedUnits} units total</span>
-                  <Link href="/admin/goods-out" className="btn-ghost text-xs py-1 px-2">Log dispatch →</Link>
-                </div>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {loading ? (
-                  <div className="p-4 text-center text-sm text-gray-500">Loading…</div>
-                ) : skuStock.map(sku => (
-                  <div key={sku.name} className="flex items-center gap-3 px-4 py-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{sku.name}</p>
-                      <p className="text-xs text-gray-400">
-                        {sku.produced} produced · {sku.dispatched} dispatched
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className={`text-lg font-bold tabular-nums ${sku.inStock === 0 ? "text-gray-300" : "text-gray-900"}`}>
-                        {sku.inStock}
-                      </p>
-                      <p className="text-xs text-gray-400">units</p>
-                    </div>
-                    <StockBar value={sku.inStock} max={Math.max(...skuStock.map(s => s.inStock), 1)} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Raw materials */}
-            <div className="card overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-700">Raw materials</h3>
-                <div className="flex items-center gap-3">
-                  {outOfStockRaw > 0 && (
-                    <span className="badge bg-red-100 text-red-700">{outOfStockRaw} out of stock</span>
-                  )}
-                  <span className="text-xs text-gray-500">{totalRawMaterialsKg.toFixed(1)} kg total</span>
-                  <Link href="/admin/goods-in" className="btn-ghost text-xs py-1 px-2">Goods in →</Link>
-                </div>
-              </div>
-              <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
-                {loading ? (
-                  <div className="p-4 text-center text-sm text-gray-500">Loading…</div>
-                ) : ingredients.map(ing => {
-                  const total = ing.lots.reduce((s, l) => s + l.quantity_remaining_g, 0);
-                  const noLots = ing.lots.length === 0;
-                  const hasStock = total > 0;
-                  return (
-                    <div key={ing.id} className={`flex items-center gap-3 px-4 py-2.5 ${!hasStock && !noLots ? "bg-red-50" : ""}`}>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 truncate">{ing.name}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        {noLots ? (
-                          <span className="text-xs text-gray-300">No deliveries</span>
-                        ) : (
-                          <>
-                            <p className={`text-sm font-bold tabular-nums ${!hasStock ? "text-red-600" : "text-gray-900"}`}>
-                              {total === 0 ? "OUT" : `${total.toLocaleString()}g`}
-                            </p>
-                            <p className="text-xs text-gray-400">{(total / 1000).toFixed(2)} kg</p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
-                <Link href="/admin/stock" className="text-xs text-brand hover:underline">View full stock detail →</Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Checklists + sidebar ──────────────────────────────── */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-3">
+          {/* Left — Checklists */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Checklists</h2>
               <span className="text-sm text-gray-500">{checklists.length} active</span>
@@ -293,12 +188,9 @@ export default function Dashboard() {
                         <span className="badge bg-gray-200 text-gray-500">{items.length}</span>
                       </div>
                     </button>
-
                     {isOpen && (
                       <div className="divide-y divide-gray-100">
-                        {items.map(cl => (
-                          <ChecklistRow key={cl.id} checklist={cl} />
-                        ))}
+                        {items.map(cl => <ChecklistRow key={cl.id} checklist={cl} />)}
                       </div>
                     )}
                   </div>
@@ -307,8 +199,40 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* Right — Stock + sidebar */}
           <div className="space-y-6">
+
+            {/* Stock (finished goods) */}
+            <div className="card overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-700">Stock</h3>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500">{totalFinishedUnits} units total</span>
+                  <Link href="/admin/goods-out" className="btn-ghost text-xs py-1 px-2">Log dispatch →</Link>
+                </div>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {loading ? (
+                  <div className="p-4 text-center text-sm text-gray-500">Loading…</div>
+                ) : skuStock.map(sku => (
+                  <div key={sku.name} className="flex items-center gap-3 px-4 py-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{sku.name}</p>
+                      <p className="text-xs text-gray-400">{sku.produced} produced · {sku.dispatched} dispatched</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className={`text-lg font-bold tabular-nums ${sku.inStock === 0 ? "text-gray-300" : "text-gray-900"}`}>
+                        {sku.inStock}
+                      </p>
+                      <p className="text-xs text-gray-400">units</p>
+                    </div>
+                    <StockBar value={sku.inStock} max={Math.max(...skuStock.map(s => s.inStock), 1)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* In-progress batches */}
             {openDrafts.length > 0 && (
               <div>
                 <h2 className="mb-3 text-lg font-semibold text-gray-900">In-Progress Batches</h2>
@@ -333,6 +257,7 @@ export default function Dashboard() {
               </div>
             )}
 
+            {/* Awaiting sign-off */}
             <div>
               <h2 className="mb-3 text-lg font-semibold text-gray-900">Awaiting Sign-Off</h2>
               {loading ? (
@@ -359,6 +284,7 @@ export default function Dashboard() {
               )}
             </div>
 
+            {/* Recent submissions */}
             <div>
               <h2 className="mb-3 text-lg font-semibold text-gray-900">Recent Submissions</h2>
               {loading ? (
@@ -384,6 +310,7 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+
           </div>
         </div>
       </main>
@@ -400,12 +327,6 @@ function groupByCategory(checklists: Checklist[]): Record<string, Checklist[]> {
     acc[cat].push(cl);
     return acc;
   }, {});
-}
-
-function isThisWeek(iso: string) {
-  const d = new Date(iso);
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  return d >= weekAgo && d <= new Date();
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
@@ -438,23 +359,20 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   );
 }
 
-type StatColor = "gray" | "blue" | "amber" | "green";
-
-const statColorMap: Record<StatColor, { border: string; bg: string; label: string; value: string; icon: string }> = {
-  gray:  { border: "border-gray-200",  bg: "bg-white",       label: "text-gray-500",  value: "text-gray-900",  icon: "bg-gray-100" },
-  blue:  { border: "border-blue-200",  bg: "bg-blue-50",     label: "text-blue-600",  value: "text-blue-900",  icon: "bg-blue-100" },
-  amber: { border: "border-amber-300", bg: "bg-amber-50",    label: "text-amber-700", value: "text-amber-900", icon: "bg-amber-100" },
-  green: { border: "border-green-200", bg: "bg-green-50",    label: "text-green-700", value: "text-green-900", icon: "bg-green-100" },
-};
-
-function StatCard({ label, value, loading, color = "gray" }: { label: string; value: number; loading: boolean; color?: StatColor }) {
-  const c = statColorMap[color];
+function StatCard({ label, value, loading, accent }: {
+  label: string; value: number; loading: boolean; accent?: "amber" | "green";
+}) {
+  const colors = {
+    amber: { border: "border-amber-300", bg: "bg-amber-50", text: "text-amber-900", label: "text-amber-700" },
+    green: { border: "border-green-200", bg: "bg-green-50", text: "text-green-900", label: "text-green-700" },
+  };
+  const c = accent ? colors[accent] : null;
   return (
-    <div className={`rounded-xl border-2 ${c.border} ${c.bg} p-4 shadow-sm`}>
-      <p className={`text-xs font-semibold uppercase tracking-wide ${c.label}`}>{label}</p>
+    <div className={`rounded-xl border-2 p-4 shadow-sm ${c ? `${c.border} ${c.bg}` : "border-gray-200 bg-white"}`}>
+      <p className={`text-xs font-semibold uppercase tracking-wide ${c ? c.label : "text-gray-500"}`}>{label}</p>
       {loading
         ? <div className="mt-2 h-8 w-14 animate-pulse rounded bg-gray-200" />
-        : <p className={`mt-1 text-3xl font-bold ${c.value}`}>{value}</p>
+        : <p className={`mt-1 text-3xl font-bold ${c ? c.text : "text-gray-900"}`}>{value}</p>
       }
     </div>
   );
@@ -477,14 +395,14 @@ function StockBar({ value, max }: { value: number; max: number }) {
 function ChecklistRow({ checklist }: { checklist: Checklist }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900">{checklist.name}</p>
-        <span className={`badge mt-0.5 ${frequencyBadgeColor(checklist.frequency as never)}`}>
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        <p className="text-sm font-medium text-gray-900 truncate">{checklist.name}</p>
+        <span className={`badge shrink-0 ${frequencyBadgeColor(checklist.frequency as never)}`}>
           {frequencyLabel(checklist.frequency as never)}
         </span>
       </div>
-      <div className="flex items-center gap-2">
-        <Link href={`/checklist/${checklist.id}`} className="btn-ghost text-xs">Open form</Link>
+      <div className="flex items-center gap-2 shrink-0">
+        <Link href={`/checklist/${checklist.id}`} className="btn-ghost text-xs">Open</Link>
         <Link href={`/print-qr?id=${checklist.id}`} className="btn-ghost text-xs">QR</Link>
       </div>
     </div>

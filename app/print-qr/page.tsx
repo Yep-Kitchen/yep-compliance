@@ -173,89 +173,68 @@ function SinglePrintView({
 
       {/* A4 print sheet */}
       <div
-        className="
-          mx-auto bg-white flex flex-col items-center justify-center text-center
-          print:fixed print:inset-0 print:m-0 print:p-0
-        "
+        className="mx-auto bg-white flex flex-col items-center justify-between text-center print:fixed print:inset-0 print:m-0"
         style={{
           width: "210mm",
-          minHeight: "297mm",
-          padding: "20mm",
+          height: "297mm",
+          padding: "14mm 16mm 12mm",
           boxSizing: "border-box",
         }}
       >
-        {/* Logo */}
+        {/* Top: logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Yep Kitchen" style={{ height: "48px", marginBottom: "16mm", objectFit: "contain" }} />
+        <img src="/logo.png" alt="Yep Kitchen" style={{ height: "72px", objectFit: "contain" }} />
 
-        {/* Frequency badge */}
-        <div
-          style={{
-            display: "inline-block",
-            background: "#f3f4f6",
-            borderRadius: "999px",
-            padding: "4px 16px",
-            fontSize: "13px",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "#374151",
-            marginBottom: "8mm",
-          }}
-        >
-          {freq}
+        {/* Middle: title + frequency */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "6mm" }}>
+          {/* Frequency */}
+          <div
+            style={{
+              display: "inline-block",
+              background: "#111827",
+              borderRadius: "999px",
+              padding: "6px 22px",
+              fontSize: "18px",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "#ffffff",
+            }}
+          >
+            {freq}
+          </div>
+
+          {/* Checklist name */}
+          <h1
+            style={{
+              fontSize: "52px",
+              fontWeight: 900,
+              color: "#111827",
+              lineHeight: 1.1,
+              maxWidth: "170mm",
+              margin: 0,
+            }}
+          >
+            {checklist.name}
+          </h1>
         </div>
 
-        {/* Checklist name */}
-        <h1
-          style={{
-            fontSize: "32px",
-            fontWeight: 800,
-            color: "#111827",
-            lineHeight: 1.2,
-            marginBottom: "10mm",
-            maxWidth: "160mm",
-          }}
-        >
-          {checklist.name}
-        </h1>
-
-        {/* QR Code */}
-        {qrSrc ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={qrSrc}
-            alt={`QR code for ${checklist.name}`}
-            style={{ width: "120mm", height: "120mm", display: "block" }}
-          />
-        ) : (
-          <div style={{ width: "120mm", height: "120mm", background: "#f3f4f6", borderRadius: "8px" }} />
-        )}
-
-        {/* URL */}
-        <p
-          style={{
-            marginTop: "8mm",
-            fontSize: "11px",
-            color: "#9ca3af",
-            fontFamily: "monospace",
-            wordBreak: "break-all",
-            maxWidth: "160mm",
-          }}
-        >
-          {url}
-        </p>
-
-        {/* Instruction */}
-        <p
-          style={{
-            marginTop: "6mm",
-            fontSize: "13px",
-            color: "#6b7280",
-          }}
-        >
-          Scan to complete this checklist
-        </p>
+        {/* Bottom: QR + instruction */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "5mm" }}>
+          {qrSrc ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={qrSrc}
+              alt={`QR code for ${checklist.name}`}
+              style={{ width: "130mm", height: "130mm", display: "block" }}
+            />
+          ) : (
+            <div style={{ width: "130mm", height: "130mm", background: "#f3f4f6", borderRadius: "8px" }} />
+          )}
+          <p style={{ fontSize: "16px", color: "#6b7280", margin: 0 }}>
+            Scan to complete this checklist
+          </p>
+        </div>
       </div>
 
       <style>{`

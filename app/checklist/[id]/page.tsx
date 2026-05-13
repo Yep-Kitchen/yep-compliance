@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import type { Checklist, Question } from "@/lib/types";
+import type { Checklist, Question, IngredientLot } from "@/lib/types";
 import QuestionField from "@/components/QuestionField";
 import { frequencyLabel } from "@/lib/utils";
 
@@ -22,8 +22,10 @@ function isFieldFilled(q: Question, val: string): boolean {
   if (q.type === "checkbox") return val === "true";
   if (q.type === "ingredient_table") {
     try {
-      const rows = JSON.parse(val) as Array<{ batch_code: string; actual_weight: string }>;
-      return rows.length > 0 && rows.every((r) => r.batch_code?.trim() && r.actual_weight?.trim());
+      const rows = JSON.parse(val) as Array<{ lots: Array<{ lot_id?: string; julian_code: string; weight_g: string }> }>;
+      return rows.length > 0 && rows.every((r) =>
+        r.lots?.length > 0 && r.lots.every((l) => (l.lot_id || l.julian_code)?.trim() && l.weight_g?.trim())
+      );
     } catch { return false; }
   }
   if (q.type === "packing_runs") {
@@ -47,6 +49,9 @@ export default function ChecklistPage() {
   const [loading, setLoading] = useState(true);
   const [submittedBy, setSubmittedBy] = useState("");
 
+  // Ingredient lots for production checklists (ingredient name → lots)
+  const [ingredientLots, setIngredientLots] = useState<Record<string, IngredientLot[]>>({});
+
   // Draft save state (Production checklists only)
   const [existingDraft, setExistingDraft] = useState<BatchDraft | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
@@ -66,8 +71,22 @@ export default function ChecklistPage() {
       if (clRes.data) setChecklist(clRes.data);
       if (qRes.data) setQuestions(qRes.data);
 
-      // Check for existing draft if this is a production checklist
+      // For production checklists: fetch ingredient lots + check for existing draft
       if (clRes.data?.category === "Production") {
+        const { data: lots } = await supabase
+          .from("ingredient_lots")
+          .select("*, ingredient:ingredients(name)")
+          .gt("quantity_remaining_g", 0)
+          .order("julian_code");
+        if (lots) {
+          const byName: Record<string, IngredientLot[]> = {};
+          for (const lot of lots as (IngredientLot & { ingredient: { name: string } })[]) {
+            const name = lot.ingredient?.name ?? "";
+            if (!byName[name]) byName[name] = [];
+            byName[name].push(lot);
+          }
+          setIngredientLots(byName);
+        }
         const { data: drafts } = await supabase
           .from("batch_drafts")
           .select("*")
@@ -158,10 +177,11 @@ export default function ChecklistPage() {
       const val = answers[q.id] ?? "";
       if (q.type === "ingredient_table") {
         try {
-          const rows = JSON.parse(val) as Array<{ batch_code: string; actual_weight: string }>;
-          if (!rows.every((r) => r.batch_code?.trim() && r.actual_weight?.trim())) {
-            errs[q.id] = "Please fill in batch code and actual weight for all ingredients";
-          }
+          const rows = JSON.parse(val) as Array<{ lots: Array<{ lot_id?: string; julian_code: string; weight_g: string }> }>;
+          const allFilled = rows.every((r) =>
+            r.lots?.length > 0 && r.lots.every((l) => (l.lot_id || l.julian_code)?.trim() && l.weight_g?.trim())
+          );
+          if (!allFilled) errs[q.id] = "Please fill in a Julian code and weight for all ingredients";
         } catch { errs[q.id] = "Please complete the ingredient table"; }
       } else if (q.type === "packing_runs") {
         try {
@@ -424,6 +444,7 @@ export default function ChecklistPage() {
                 value={answers[q.id] ?? ""}
                 onChange={(val) => handleAnswerChange(q.id, val)}
                 error={errors[q.id]}
+                ingredientLots={ingredientLots}
               />
             </div>
           ))}

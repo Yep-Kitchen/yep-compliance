@@ -76,6 +76,26 @@ export interface TeamMember {
   created_at: string;
 }
 
+export interface Ingredient {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface IngredientLot {
+  id: string;
+  ingredient_id: string;
+  julian_code: string;
+  quantity_received_g: number;
+  quantity_remaining_g: number;
+  received_date: string;
+  supplier: string | null;
+  best_before_date: string | null;
+  created_by: string;
+  created_at: string;
+  ingredient?: Ingredient;
+}
+
 export interface AlertLog {
   id: string;
   checklist_id: string;

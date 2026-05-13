@@ -1,16 +1,17 @@
 "use client";
 
 import { useRef, useCallback } from "react";
-import type { Question } from "@/lib/types";
+import type { Question, IngredientLot } from "@/lib/types";
 
 interface Props {
   question: Question;
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  ingredientLots?: Record<string, IngredientLot[]>; // ingredient name → available lots
 }
 
-export default function QuestionField({ question, value, onChange, error }: Props) {
+export default function QuestionField({ question, value, onChange, error, ingredientLots }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const base = (
@@ -215,27 +216,68 @@ export default function QuestionField({ question, value, onChange, error }: Prop
   }
 
   if (question.type === "ingredient_table") {
+    type LotUse = { lot_id: string; julian_code: string; weight_g: string };
+    type IngRow = { name: string; lots: LotUse[] };
+
     const ingredients = (question.options ?? []).map((opt) => {
-      const [name, weight] = opt.split("|");
+      const [name, weight] = (opt as string).split("|");
       return { name: name ?? opt, intended: Number(weight ?? 0) };
     });
-    let rows: Array<{ name: string; batch_code: string; actual_weight: string }>;
+
+    let rows: IngRow[];
     try {
-      rows = value ? JSON.parse(value) : [];
-    } catch {
-      rows = [];
-    }
+      const parsed = value ? JSON.parse(value) : [];
+      // Support both old format {batch_code, actual_weight} and new {lots}
+      rows = parsed.map((r: IngRow & { batch_code?: string; actual_weight?: string }, i: number) => ({
+        name: r.name ?? ingredients[i]?.name ?? "",
+        lots: r.lots ?? [{ lot_id: "", julian_code: r.batch_code ?? "", weight_g: r.actual_weight ?? "" }],
+      }));
+    } catch { rows = []; }
+
     if (rows.length !== ingredients.length) {
       rows = ingredients.map((ing, i) => ({
         name: ing.name,
-        batch_code: rows[i]?.batch_code ?? "",
-        actual_weight: rows[i]?.actual_weight ?? "",
+        lots: rows[i]?.lots ?? [{ lot_id: "", julian_code: "", weight_g: "" }],
       }));
     }
-    const updateRow = (idx: number, field: "batch_code" | "actual_weight", val: string) => {
-      const next = rows.map((r, i) => (i === idx ? { ...r, [field]: val } : r));
-      onChange(JSON.stringify(next));
+
+    const emptyLot: LotUse = { lot_id: "", julian_code: "", weight_g: "" };
+
+    const update = (newRows: IngRow[]) => onChange(JSON.stringify(newRows));
+
+    const updateLot = (ingIdx: number, lotIdx: number, field: keyof LotUse, val: string) => {
+      const newRows = rows.map((row, i) => {
+        if (i !== ingIdx) return row;
+        const newLots = row.lots.map((lot, j) => {
+          if (j !== lotIdx) return lot;
+          const updated = { ...lot, [field]: val };
+          if (field === "lot_id") {
+            const lot = (ingredientLots?.[ingredients[ingIdx].name] ?? []).find(l => l.id === val);
+            if (lot) updated.julian_code = lot.julian_code;
+          }
+          return updated;
+        });
+        return { ...row, lots: newLots };
+      });
+      update(newRows);
     };
+
+    const addLot = (ingIdx: number) => {
+      const newRows = rows.map((row, i) =>
+        i === ingIdx ? { ...row, lots: [...row.lots, emptyLot] } : row
+      );
+      update(newRows);
+    };
+
+    const removeLot = (ingIdx: number, lotIdx: number) => {
+      const newRows = rows.map((row, i) => {
+        if (i !== ingIdx) return row;
+        const newLots = row.lots.filter((_, j) => j !== lotIdx);
+        return { ...row, lots: newLots.length ? newLots : [emptyLot] };
+      });
+      update(newRows);
+    };
+
     return (
       <div>
         <label className="label">
@@ -243,45 +285,71 @@ export default function QuestionField({ question, value, onChange, error }: Prop
           {question.required && <span className="ml-1 text-brand">*</span>}
         </label>
         {question.hint && <p className="text-xs text-gray-500 -mt-0.5 mb-2">{question.hint}</p>}
-        <div className={`overflow-x-auto rounded-xl border ${error ? "border-red-300" : "border-gray-200"}`}>
-          <table className="w-full text-sm min-w-[500px]">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-3 py-2 text-left font-medium text-gray-700">Ingredient</th>
-                <th className="px-3 py-2 text-right font-medium text-gray-700 whitespace-nowrap">Target (g)</th>
-                <th className="px-3 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Batch Code</th>
-                <th className="px-3 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Actual (g)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {ingredients.map((ing, idx) => (
-                <tr key={ing.name} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
-                  <td className="px-3 py-2 font-medium text-gray-900 text-xs leading-tight">{ing.name}</td>
-                  <td className="px-3 py-2 text-right text-gray-500 text-xs tabular-nums">{ing.intended.toLocaleString()}</td>
-                  <td className="px-3 py-1.5">
-                    <input
-                      type="text"
-                      value={rows[idx]?.batch_code ?? ""}
-                      onChange={(e) => updateRow(idx, "batch_code", e.target.value)}
-                      className="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
-                      placeholder="Batch code"
-                    />
-                  </td>
-                  <td className="px-3 py-1.5">
+        <div className={`space-y-2 ${error ? "rounded-xl border border-red-300 p-2" : ""}`}>
+          {ingredients.map((ing, ingIdx) => {
+            const row = rows[ingIdx];
+            const availableLots = ingredientLots?.[ing.name] ?? [];
+            const totalEntered = (row?.lots ?? []).reduce((sum, l) => sum + (Number(l.weight_g) || 0), 0);
+            const diff = totalEntered - ing.intended;
+            return (
+              <div key={ing.name} className="rounded-xl border border-gray-200 bg-white p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-900">{ing.name}</p>
+                  <span className="text-xs text-gray-500 tabular-nums">Target: {ing.intended.toLocaleString()}g</span>
+                </div>
+                {(row?.lots ?? [emptyLot]).map((lotUse, lotIdx) => (
+                  <div key={lotIdx} className="flex gap-2 items-center">
+                    {availableLots.length > 0 ? (
+                      <select
+                        value={lotUse.lot_id}
+                        onChange={(e) => updateLot(ingIdx, lotIdx, "lot_id", e.target.value)}
+                        className="input flex-1 text-sm py-1.5 min-w-0"
+                      >
+                        <option value="">Select Julian code…</option>
+                        {availableLots.map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.julian_code} — {l.quantity_remaining_g.toLocaleString()}g left
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={lotUse.julian_code}
+                        onChange={(e) => updateLot(ingIdx, lotIdx, "julian_code", e.target.value)}
+                        className="input flex-1 text-sm py-1.5"
+                        placeholder="Julian code (e.g. 26124)"
+                      />
+                    )}
                     <input
                       type="number"
-                      value={rows[idx]?.actual_weight ?? ""}
-                      onChange={(e) => updateRow(idx, "actual_weight", e.target.value)}
-                      className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
-                      placeholder="0"
+                      value={lotUse.weight_g}
+                      onChange={(e) => updateLot(ingIdx, lotIdx, "weight_g", e.target.value)}
+                      className="input w-28 shrink-0 text-sm py-1.5"
+                      placeholder="Weight (g)"
                       inputMode="decimal"
                       step="0.1"
                     />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {(row?.lots.length ?? 1) > 1 && (
+                      <button type="button" onClick={() => removeLot(ingIdx, lotIdx)}
+                        className="text-lg text-gray-300 hover:text-red-400 transition leading-none shrink-0">×</button>
+                    )}
+                  </div>
+                ))}
+                <div className="flex items-center justify-between pt-0.5">
+                  <button type="button" onClick={() => addLot(ingIdx)}
+                    className="text-xs text-brand hover:underline">
+                    + Split across another lot
+                  </button>
+                  {totalEntered > 0 && (
+                    <span className={`text-xs font-medium tabular-nums ${Math.abs(diff) <= 100 ? "text-green-600" : "text-amber-600"}`}>
+                      {totalEntered.toLocaleString()}g total {diff === 0 ? "✓" : `(${diff > 0 ? "+" : ""}${diff.toLocaleString()}g)`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
         {errMsg}
       </div>

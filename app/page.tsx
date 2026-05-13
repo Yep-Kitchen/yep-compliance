@@ -65,8 +65,10 @@ export default function Dashboard() {
             <img src="/logo.png" alt="Yep Kitchen" className="h-10 w-auto" />
             <p className="text-xs text-gray-500 hidden sm:block">Compliance Portal</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <Link href="/dashboard" className="btn-secondary text-xs">All Submissions</Link>
+            <Link href="/admin/stock" className="btn-secondary text-xs">Stock</Link>
+            <Link href="/admin/goods-in" className="btn-secondary text-xs">Goods In</Link>
             <Link href="/print-qr" className="btn-secondary text-xs">Print QR Codes</Link>
             <Link href="/admin/checklists" className="btn-secondary text-xs">Edit Checklists</Link>
           </div>

@@ -20,6 +20,8 @@ export default function StockPage() {
   const [editPrice, setEditPrice]     = useState("");
   const [editSupplier, setEditSupplier] = useState("");
   const [saving, setSaving]           = useState(false);
+  const [saveError, setSaveError]     = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -54,12 +56,15 @@ export default function StockPage() {
     setEditing(ing);
     setEditPrice(ing.price_per_kg != null ? String(ing.price_per_kg) : "");
     setEditSupplier(ing.supplier_id ?? "");
+    setSaveError("");
+    setDeleteConfirm(false);
   }
 
   async function saveEdit() {
     if (!editing) return;
     setSaving(true);
-    await supabase
+    setSaveError("");
+    const { error } = await supabase
       .from("ingredients")
       .update({
         price_per_kg: editPrice ? parseFloat(editPrice) : null,
@@ -67,6 +72,23 @@ export default function StockPage() {
       })
       .eq("id", editing.id);
     setSaving(false);
+    if (error) {
+      setSaveError(error.message);
+      return;
+    }
+    setEditing(null);
+    await load();
+  }
+
+  async function deleteIngredient() {
+    if (!editing) return;
+    if (editing.lots.length > 0) {
+      setSaveError("Cannot delete — this ingredient has delivery records. Remove the lots first.");
+      setDeleteConfirm(false);
+      return;
+    }
+    const { error } = await supabase.from("ingredients").delete().eq("id", editing.id);
+    if (error) { setSaveError(error.message); return; }
     setEditing(null);
     await load();
   }
@@ -271,11 +293,30 @@ export default function StockPage() {
               </div>
             </div>
 
-            <div className="border-t border-gray-200 px-6 py-4 flex gap-3">
-              <button onClick={() => setEditing(null)} className="btn-ghost flex-1">Cancel</button>
-              <button onClick={saveEdit} disabled={saving} className="btn-primary flex-1">
-                {saving ? "Saving…" : "Save"}
-              </button>
+            {saveError && (
+              <div className="mx-6 mb-2 rounded bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+                {saveError}
+              </div>
+            )}
+
+            <div className="border-t border-gray-200 px-6 py-2 pt-3 pb-3">
+              {deleteConfirm ? (
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-xs text-red-600 flex-1">Delete {editing.name}?</span>
+                  <button onClick={deleteIngredient} className="text-xs text-red-600 font-semibold hover:underline">Yes, delete</button>
+                  <button onClick={() => setDeleteConfirm(false)} className="text-xs text-gray-400 hover:underline">Cancel</button>
+                </div>
+              ) : (
+                <button onClick={() => setDeleteConfirm(true)} className="text-xs text-red-400 hover:text-red-600 mb-3 block">
+                  Delete ingredient
+                </button>
+              )}
+              <div className="flex gap-3">
+                <button onClick={() => setEditing(null)} className="btn-ghost flex-1">Cancel</button>
+                <button onClick={saveEdit} disabled={saving} className="btn-primary flex-1">
+                  {saving ? "Saving…" : "Save"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

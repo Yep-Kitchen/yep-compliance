@@ -148,97 +148,112 @@ export default function StockPage() {
           <div className="card overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-gray-700">All ingredients</h2>
-              <span className="text-xs text-gray-400">Click an ingredient to set price &amp; supplier · click row arrow to see lots</span>
+              <span className="text-xs text-gray-400">Click a row to edit · expand arrow to see lots</span>
             </div>
-            <div className="divide-y divide-gray-100">
-              {ingredients.map(ing => {
-                const totalRemaining = ing.lots.reduce((s, l) => s + l.quantity_remaining_g, 0);
-                const openLots = ing.lots.filter(l => l.quantity_remaining_g > 0);
-                const isOpen = expanded[ing.id];
-                const hasStock = totalRemaining > 0;
-                const noLots = ing.lots.length === 0;
-                const value = ing.price_per_kg != null ? (totalRemaining / 1000) * ing.price_per_kg : null;
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Ingredient</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Supplier</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Price / kg</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">In stock</th>
+                  <th className="w-8 px-2" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {ingredients.map(ing => {
+                  const totalRemaining = ing.lots.reduce((s, l) => s + l.quantity_remaining_g, 0);
+                  const isOpen = expanded[ing.id];
+                  const hasStock = totalRemaining > 0;
+                  const noLots = ing.lots.length === 0;
+                  const value = ing.price_per_kg != null ? (totalRemaining / 1000) * ing.price_per_kg : null;
 
-                return (
-                  <div key={ing.id}>
-                    <div className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition">
-                      {/* Ingredient name — click to edit */}
-                      <button
+                  return (
+                    <>
+                      <tr
+                        key={ing.id}
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => openEdit(ing)}
-                        className="flex-1 min-w-0 text-left group"
                       >
-                        <p className="text-sm font-medium text-gray-900 group-hover:text-brand transition-colors">
-                          {ing.name}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {ing.supplier?.name ?? <span className="text-amber-500">No supplier set</span>}
+                        <td className="px-4 py-3 font-medium text-gray-900">{ing.name}</td>
+                        <td className="px-4 py-3">
+                          {ing.supplier?.name
+                            ? <span className="text-gray-600">{ing.supplier.name}</span>
+                            : <span className="text-amber-500 text-xs">Not set</span>
+                          }
+                        </td>
+                        <td className="px-4 py-3">
                           {ing.price_per_kg != null
-                            ? ` · £${ing.price_per_kg.toFixed(2)}/kg`
-                            : <span className="text-amber-500"> · No price set</span>
+                            ? <span className="text-gray-600">£{ing.price_per_kg.toFixed(2)}</span>
+                            : <span className="text-amber-500 text-xs">Not set</span>
                           }
-                        </p>
-                      </button>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {noLots ? (
+                            <span className="text-gray-300">—</span>
+                          ) : (
+                            <div>
+                              <p className={`font-semibold tabular-nums ${!hasStock ? "text-red-600" : "text-gray-900"}`}>
+                                {(totalRemaining / 1000).toFixed(2)} kg
+                              </p>
+                              {value != null && (
+                                <p className="text-xs text-green-700 font-medium">
+                                  £{value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-2 py-3" onClick={e => e.stopPropagation()}>
+                          {!noLots && (
+                            <button
+                              onClick={() => setExpanded(p => ({ ...p, [ing.id]: !p[ing.id] }))}
+                              className="p-1 rounded hover:bg-gray-200 transition"
+                            >
+                              <svg className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                                viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
 
-                      {/* Stock + value */}
-                      <div className="text-right shrink-0">
-                        <p className={`text-sm font-bold tabular-nums ${!hasStock && !noLots ? "text-red-600" : "text-gray-900"}`}>
-                          {noLots ? "—" : `${totalRemaining.toLocaleString()}g`}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {value != null
-                            ? `£${value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                            : noLots ? "" : `${(totalRemaining / 1000).toFixed(2)} kg`
-                          }
-                        </p>
-                      </div>
-
-                      {/* Expand lots arrow */}
-                      {!noLots && (
-                        <button
-                          onClick={() => setExpanded(p => ({ ...p, [ing.id]: !p[ing.id] }))}
-                          className="p-1 rounded hover:bg-gray-200 transition shrink-0"
-                          title="Show lots"
-                        >
-                          <svg className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                            viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
+                      {isOpen && ing.lots.length > 0 && (
+                        <tr key={`${ing.id}-lots`}>
+                          <td colSpan={5} className="bg-gray-50 border-t border-gray-100 px-4 py-3">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="text-gray-500">
+                                  <th className="text-left py-1 font-medium">Julian code</th>
+                                  <th className="text-right py-1 font-medium">Received</th>
+                                  <th className="text-right py-1 font-medium">Remaining</th>
+                                  <th className="text-left py-1 font-medium pl-4">Date in</th>
+                                  <th className="text-left py-1 font-medium">Supplier on lot</th>
+                                  <th className="text-left py-1 font-medium">Best before</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                {ing.lots.map(lot => (
+                                  <tr key={lot.id} className={lot.quantity_remaining_g === 0 ? "opacity-40" : ""}>
+                                    <td className="py-1.5 font-mono font-semibold text-gray-900">{lot.julian_code}</td>
+                                    <td className="py-1.5 text-right tabular-nums text-gray-600">{(lot.quantity_received_g / 1000).toFixed(2)} kg</td>
+                                    <td className="py-1.5 text-right tabular-nums font-semibold text-gray-900">{(lot.quantity_remaining_g / 1000).toFixed(2)} kg</td>
+                                    <td className="py-1.5 pl-4 text-gray-500">{formatDate(lot.received_date)}</td>
+                                    <td className="py-1.5 text-gray-500">{lot.supplier ?? "—"}</td>
+                                    <td className="py-1.5 text-gray-500">{lot.best_before_date ? formatDate(lot.best_before_date) : "—"}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
                       )}
-                    </div>
-
-                    {isOpen && ing.lots.length > 0 && (
-                      <div className="bg-gray-50 border-t border-gray-100 px-4 py-2">
-                        <table className="w-full text-xs">
-                          <thead>
-                            <tr className="text-gray-500">
-                              <th className="text-left py-1 font-medium">Julian code</th>
-                              <th className="text-right py-1 font-medium">Received (g)</th>
-                              <th className="text-right py-1 font-medium">Remaining (g)</th>
-                              <th className="text-left py-1 font-medium pl-4">Date in</th>
-                              <th className="text-left py-1 font-medium">Supplier</th>
-                              <th className="text-left py-1 font-medium">Best before</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {ing.lots.map(lot => (
-                              <tr key={lot.id} className={lot.quantity_remaining_g === 0 ? "opacity-40" : ""}>
-                                <td className="py-1.5 font-mono font-semibold text-gray-900">{lot.julian_code}</td>
-                                <td className="py-1.5 text-right tabular-nums text-gray-600">{lot.quantity_received_g.toLocaleString()}</td>
-                                <td className="py-1.5 text-right tabular-nums font-semibold text-gray-900">{lot.quantity_remaining_g.toLocaleString()}</td>
-                                <td className="py-1.5 pl-4 text-gray-500">{formatDate(lot.received_date)}</td>
-                                <td className="py-1.5 text-gray-500">{lot.supplier ?? "—"}</td>
-                                <td className="py-1.5 text-gray-500">{lot.best_before_date ? formatDate(lot.best_before_date) : "—"}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                    </>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </main>

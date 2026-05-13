@@ -96,6 +96,23 @@ export interface IngredientLot {
   ingredient?: Ingredient;
 }
 
+export interface Dispatch {
+  id: string;
+  dispatch_date: string;
+  product: string;
+  customer: string;
+  cases_of_6: number;
+  cases_of_3: number;
+  singles: number;
+  total_units: number;
+  reference: string | null;
+  dispatched_by: string;
+  notes: string | null;
+  batch_submission_id: string | null;
+  created_at: string;
+  batch_submission?: Submission;
+}
+
 export interface AlertLog {
   id: string;
   checklist_id: string;

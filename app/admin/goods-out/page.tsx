@@ -16,8 +16,7 @@ const SKUS = [
 
 const CUSTOMERS = ["3PL", "Amazon", "Shopify", "Other"];
 
-interface DispatchRow {
-  id: string;
+interface ProductRow {
   product: string;
   casesOf6: string;
   casesOf3: string;
@@ -25,15 +24,8 @@ interface DispatchRow {
   batchSubmissionId: string;
 }
 
-function emptyRow(): DispatchRow {
-  return {
-    id: crypto.randomUUID(),
-    product: "",
-    casesOf6: "0",
-    casesOf3: "0",
-    singles: "0",
-    batchSubmissionId: "",
-  };
+function emptyRow(): ProductRow {
+  return { product: "", casesOf6: "0", casesOf3: "0", singles: "0", batchSubmissionId: "" };
 }
 
 export default function GoodsOutPage() {
@@ -44,16 +36,14 @@ export default function GoodsOutPage() {
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [rows, setRows] = useState<DispatchRow[]>([emptyRow()]);
+  const [rows, setRows] = useState<ProductRow[]>([emptyRow()]);
   const [customer, setCustomer] = useState("3PL");
   const [dispatchDate, setDispatchDate] = useState(new Date().toISOString().slice(0, 10));
   const [reference, setReference] = useState("");
   const [dispatchedBy, setDispatchedBy] = useState("");
   const [notes, setNotes] = useState("");
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function load() {
     const [dispRes, subRes] = await Promise.all([
@@ -79,19 +69,17 @@ export default function GoodsOutPage() {
     setLoading(false);
   }
 
-  function updateRow(id: string, field: keyof DispatchRow, value: string) {
-    setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+  function updateRow(idx: number, field: keyof ProductRow, value: string) {
+    setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
   }
 
-  function addRow() {
-    setRows(prev => [...prev, emptyRow()]);
+  function addRow() { setRows(prev => [...prev, emptyRow()]); }
+
+  function removeRow(idx: number) {
+    if (rows.length > 1) setRows(prev => prev.filter((_, i) => i !== idx));
   }
 
-  function removeRow(id: string) {
-    setRows(prev => prev.length > 1 ? prev.filter(r => r.id !== id) : prev);
-  }
-
-  function rowTotal(row: DispatchRow) {
+  function rowTotal(row: ProductRow) {
     return Number(row.casesOf6) * 6 + Number(row.casesOf3) * 3 + Number(row.singles);
   }
 
@@ -99,9 +87,9 @@ export default function GoodsOutPage() {
 
   function validate() {
     const errs: Record<string, string> = {};
-    if (!dispatchedBy.trim()) errs.dispatchedBy = "Enter your name";
+    if (!dispatchedBy.trim()) errs.dispatchedBy = "Required";
     rows.forEach((row, i) => {
-      if (!row.product) errs[`product_${i}`] = "Select a product";
+      if (!row.product) errs[`product_${i}`] = "Required";
       if (rowTotal(row) <= 0) errs[`units_${i}`] = "Enter at least one unit";
     });
     setErrors(errs);
@@ -129,11 +117,7 @@ export default function GoodsOutPage() {
 
     const { error } = await supabase.from("dispatches").insert(inserts);
     setSaving(false);
-
-    if (error) {
-      alert("Failed to save — please try again.");
-      return;
-    }
+    if (error) { alert("Failed to save — please try again."); return; }
 
     setSaved(true);
     setRows([emptyRow()]);
@@ -156,14 +140,13 @@ export default function GoodsOutPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 space-y-6">
+      <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6 space-y-6">
         <div className="card p-6">
-          <h2 className="text-sm font-semibold text-gray-900 mb-1">Log dispatch</h2>
-          <p className="text-xs text-gray-500 mb-5">Add one row per product line dispatched.</p>
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">Log dispatch</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Shared fields */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="label">Customer *</label>
                 <select value={customer} onChange={e => setCustomer(e.target.value)} className="input">
@@ -192,81 +175,98 @@ export default function GoodsOutPage() {
               </div>
             </div>
 
-            {/* Per-product rows */}
+            {/* Product cards */}
             <div className="space-y-3">
-              {rows.map((row, i) => {
+              {rows.map((row, idx) => {
                 const filteredBatches = row.product
                   ? batchSubmissions.filter(s => s.checklist?.name?.startsWith(row.product))
                   : batchSubmissions;
                 const total = rowTotal(row);
+
                 return (
-                  <div key={row.id} className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+                  <div key={idx} className="rounded-xl border border-gray-200 p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Line {i + 1}</span>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Product {idx + 1}
+                      </p>
                       {rows.length > 1 && (
-                        <button type="button" onClick={() => removeRow(row.id)} className="text-xs text-red-500 hover:text-red-700 transition">
+                        <button
+                          type="button"
+                          onClick={() => removeRow(idx)}
+                          className="text-xs text-gray-400 hover:text-red-500 transition"
+                        >
                           Remove
                         </button>
                       )}
                     </div>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      <div className="sm:col-span-2">
-                        <label className="label">Product *</label>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Product */}
+                      <div className="col-span-2">
+                        <label className="text-xs text-gray-500 block mb-0.5">Product *</label>
                         <select
                           value={row.product}
-                          onChange={e => updateRow(row.id, "product", e.target.value)}
-                          className={`input ${errors[`product_${i}`] ? "border-red-300" : ""}`}
+                          onChange={e => updateRow(idx, "product", e.target.value)}
+                          className={`input text-sm py-1.5 ${errors[`product_${idx}`] ? "border-red-300" : ""}`}
                         >
                           <option value="">Select product…</option>
                           {SKUS.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
-                        {errors[`product_${i}`] && <p className="mt-1 text-xs text-red-600">{errors[`product_${i}`]}</p>}
+                        {errors[`product_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`product_${idx}`]}</p>}
                       </div>
 
+                      {/* Cases of 6 */}
                       <div>
-                        <label className="label">Cases of 6</label>
+                        <label className="text-xs text-gray-500 block mb-0.5">Cases of 6</label>
                         <input
                           type="number" min="0"
                           value={row.casesOf6}
-                          onChange={e => updateRow(row.id, "casesOf6", e.target.value)}
-                          className="input" inputMode="numeric"
+                          onChange={e => updateRow(idx, "casesOf6", e.target.value)}
+                          className="input text-sm py-1.5"
+                          inputMode="numeric"
                         />
                       </div>
 
+                      {/* Cases of 3 */}
                       <div>
-                        <label className="label">Cases of 3</label>
+                        <label className="text-xs text-gray-500 block mb-0.5">Cases of 3</label>
                         <input
                           type="number" min="0"
                           value={row.casesOf3}
-                          onChange={e => updateRow(row.id, "casesOf3", e.target.value)}
-                          className="input" inputMode="numeric"
+                          onChange={e => updateRow(idx, "casesOf3", e.target.value)}
+                          className="input text-sm py-1.5"
+                          inputMode="numeric"
                         />
                       </div>
 
+                      {/* Singles */}
                       <div>
-                        <label className="label">Singles</label>
+                        <label className="text-xs text-gray-500 block mb-0.5">Singles</label>
                         <input
                           type="number" min="0"
                           value={row.singles}
-                          onChange={e => updateRow(row.id, "singles", e.target.value)}
-                          className="input" inputMode="numeric"
+                          onChange={e => updateRow(idx, "singles", e.target.value)}
+                          className="input text-sm py-1.5"
+                          inputMode="numeric"
                         />
                       </div>
 
+                      {/* Total */}
                       <div>
-                        <label className="label">Total units</label>
-                        <div className={`input bg-white font-bold tabular-nums ${total > 0 ? "text-gray-900" : "text-gray-300"}`}>
+                        <label className="text-xs text-gray-500 block mb-0.5">Total units</label>
+                        <div className={`input text-sm py-1.5 bg-gray-50 font-bold tabular-nums ${total > 0 ? "text-gray-900" : "text-gray-300"}`}>
                           {total}
                         </div>
-                        {errors[`units_${i}`] && <p className="mt-1 text-xs text-red-600">{errors[`units_${i}`]}</p>}
+                        {errors[`units_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`units_${idx}`]}</p>}
                       </div>
 
-                      <div className="sm:col-span-2">
-                        <label className="label">Link batch record</label>
+                      {/* Batch record */}
+                      <div className="col-span-2">
+                        <label className="text-xs text-gray-500 block mb-0.5">Link batch record (traceability)</label>
                         <select
                           value={row.batchSubmissionId}
-                          onChange={e => updateRow(row.id, "batchSubmissionId", e.target.value)}
-                          className="input"
+                          onChange={e => updateRow(idx, "batchSubmissionId", e.target.value)}
+                          className="input text-sm py-1.5"
                           disabled={!row.product}
                         >
                           <option value="">No link…</option>
@@ -281,18 +281,18 @@ export default function GoodsOutPage() {
                   </div>
                 );
               })}
+
+              <button
+                type="button"
+                onClick={addRow}
+                className="w-full rounded-xl border-2 border-dashed border-gray-200 py-2.5 text-sm text-gray-500 hover:border-brand hover:text-brand transition"
+              >
+                + Add another product
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={addRow}
-              className="w-full rounded-lg border-2 border-dashed border-gray-300 py-2.5 text-sm font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 transition"
-            >
-              + Add another product line
-            </button>
-
             {grandTotal > 0 && (
-              <p className="text-sm text-gray-600 font-medium">
+              <p className="text-sm text-gray-600">
                 Total dispatch: <span className="font-bold text-gray-900">{grandTotal} units</span>
               </p>
             )}
@@ -304,7 +304,7 @@ export default function GoodsOutPage() {
 
             <div className="flex items-center gap-3 pt-1">
               <button type="submit" disabled={saving} className="btn-primary">
-                {saving ? "Saving…" : `Log dispatch (${rows.length} line${rows.length !== 1 ? "s" : ""})`}
+                {saving ? "Saving…" : `Log dispatch (${rows.length} product${rows.length !== 1 ? "s" : ""})`}
               </button>
               {saved && <span className="text-sm text-green-600 font-medium">Saved ✓</span>}
             </div>
@@ -320,7 +320,7 @@ export default function GoodsOutPage() {
             <div className="card p-4 text-center text-sm text-gray-500">No dispatches logged yet.</div>
           ) : (
             <div className="card overflow-x-auto">
-              <table className="w-full text-sm min-w-[640px]">
+              <table className="w-full text-sm min-w-[560px]">
                 <thead className="border-b border-gray-200 bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold text-gray-700">Date</th>
@@ -331,7 +331,6 @@ export default function GoodsOutPage() {
                     <th className="px-4 py-3 text-right font-semibold text-gray-700">Singles</th>
                     <th className="px-4 py-3 text-right font-semibold text-gray-700">Units</th>
                     <th className="px-4 py-3 text-left font-semibold text-gray-700">Ref</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">By</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -345,7 +344,6 @@ export default function GoodsOutPage() {
                       <td className="px-4 py-3 text-right tabular-nums text-gray-600">{d.singles || "—"}</td>
                       <td className="px-4 py-3 text-right tabular-nums font-semibold text-gray-900">{d.total_units}</td>
                       <td className="px-4 py-3 text-gray-500">{d.reference ?? "—"}</td>
-                      <td className="px-4 py-3 text-gray-500">{d.dispatched_by}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -31,7 +31,8 @@ export default function Dashboard() {
   const [ingredients, setIngredients] = useState<IngredientWithLots[]>([]);
   const [skuStock, setSkuStock] = useState<SkuStock[]>([]);
   const [loading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  // expanded = true means open; default closed
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     load();
@@ -81,14 +82,12 @@ export default function Dashboard() {
       );
     }
 
-    // Calculate finished goods stock per SKU
     if (batchSubRes.data && dispRes.data) {
       const dispatchedByProduct: Record<string, number> = {};
       for (const d of (dispRes.data as { product: string; total_units: number }[])) {
         dispatchedByProduct[d.product] = (dispatchedByProduct[d.product] ?? 0) + d.total_units;
       }
 
-      // Count produced units per SKU from packing_runs answers
       const producedByProduct: Record<string, number> = {};
       for (const sub of (batchSubRes.data as never as Array<{
         checklist: { name: string; category: string } | null;
@@ -132,7 +131,7 @@ export default function Dashboard() {
   );
 
   function toggleCategory(cat: string) {
-    setCollapsed(prev => ({ ...prev, [cat]: !prev[cat] }));
+    setExpanded(prev => ({ ...prev, [cat]: !prev[cat] }));
   }
 
   const totalRawMaterialsKg = ingredients.reduce(
@@ -149,25 +148,36 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6">
+          <div className="flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Yep Kitchen" className="h-10 w-auto" />
-            <p className="text-xs text-gray-500 hidden sm:block">Compliance Portal</p>
+            <img src="/logo.png" alt="Yep Kitchen" className="h-14 w-auto" />
+            <div className="hidden sm:block">
+              <p className="text-sm font-semibold text-gray-700">Compliance Portal</p>
+              <p className="text-xs text-gray-400">Yep Kitchen</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            <Link href="/dashboard" className="btn-secondary text-xs">All Submissions</Link>
-            <Link href="/admin/stock" className="btn-secondary text-xs">Stock</Link>
-            <Link href="/admin/goods-in" className="btn-secondary text-xs">Goods In</Link>
-            <Link href="/admin/goods-out" className="btn-secondary text-xs">Goods Out</Link>
-            <Link href="/admin/traceability" className="btn-secondary text-xs">Traceability</Link>
-            <Link href="/print-qr" className="btn-secondary text-xs">Print QR</Link>
-            <Link href="/admin/checklists" className="btn-secondary text-xs">Checklists</Link>
-          </div>
+          <nav className="flex items-center gap-2 flex-wrap justify-end">
+            <NavLink href="/dashboard">All Submissions</NavLink>
+            <NavLink href="/admin/stock">Stock</NavLink>
+            <NavLink href="/admin/goods-in">Goods In</NavLink>
+            <NavLink href="/admin/goods-out">Goods Out</NavLink>
+            <NavLink href="/admin/traceability">Traceability</NavLink>
+            <NavLink href="/print-qr">Print QR</NavLink>
+            <NavLink href="/admin/checklists">Checklists</NavLink>
+          </nav>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-8">
+
+        {/* ── Key stats ─────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <StatCard label="Checklists" value={checklists.length} loading={loading} color="gray" />
+          <StatCard label="Today's submissions" value={todayCount} loading={loading} color="blue" />
+          <StatCard label="Pending sign-off" value={pendingSignOff.length} loading={loading} color={pendingSignOff.length > 0 ? "amber" : "gray"} />
+          <StatCard label="This week" value={recentSubmissions.filter(s => isThisWeek(s.submitted_at)).length} loading={loading} color="green" />
+        </div>
 
         {/* ── Inventory overview ────────────────────────────────── */}
         <section>
@@ -180,7 +190,7 @@ export default function Dashboard() {
                 <h3 className="text-sm font-semibold text-gray-700">Finished goods</h3>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-500">{totalFinishedUnits} units total</span>
-                  <Link href="/admin/goods-out" className="btn-ghost text-xs">Log dispatch →</Link>
+                  <Link href="/admin/goods-out" className="btn-ghost text-xs py-1 px-2">Log dispatch →</Link>
                 </div>
               </div>
               <div className="divide-y divide-gray-100">
@@ -215,7 +225,7 @@ export default function Dashboard() {
                     <span className="badge bg-red-100 text-red-700">{outOfStockRaw} out of stock</span>
                   )}
                   <span className="text-xs text-gray-500">{totalRawMaterialsKg.toFixed(1)} kg total</span>
-                  <Link href="/admin/goods-in" className="btn-ghost text-xs">Goods in →</Link>
+                  <Link href="/admin/goods-in" className="btn-ghost text-xs py-1 px-2">Goods in →</Link>
                 </div>
               </div>
               <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
@@ -253,14 +263,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ── Summary stats ─────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard label="Checklists" value={checklists.length} loading={loading} />
-          <StatCard label="Today's submissions" value={todayCount} loading={loading} />
-          <StatCard label="Pending sign-off" value={pendingSignOff.length} loading={loading} accent={pendingSignOff.length > 0} />
-          <StatCard label="This week" value={recentSubmissions.filter(s => isThisWeek(s.submitted_at)).length} loading={loading} />
-        </div>
-
         {/* ── Checklists + sidebar ──────────────────────────────── */}
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-3">
@@ -276,7 +278,7 @@ export default function Dashboard() {
             ) : (
               categoryOrder.map(cat => {
                 const items = grouped[cat];
-                const isOpen = !collapsed[cat];
+                const isOpen = !!expanded[cat];
                 return (
                   <div key={cat} className="card overflow-hidden">
                     <button
@@ -406,6 +408,39 @@ function isThisWeek(iso: string) {
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:border-gray-400 active:scale-95"
+    >
+      {children}
+    </Link>
+  );
+}
+
+type StatColor = "gray" | "blue" | "amber" | "green";
+
+const statColorMap: Record<StatColor, { border: string; bg: string; label: string; value: string; icon: string }> = {
+  gray:  { border: "border-gray-200",  bg: "bg-white",       label: "text-gray-500",  value: "text-gray-900",  icon: "bg-gray-100" },
+  blue:  { border: "border-blue-200",  bg: "bg-blue-50",     label: "text-blue-600",  value: "text-blue-900",  icon: "bg-blue-100" },
+  amber: { border: "border-amber-300", bg: "bg-amber-50",    label: "text-amber-700", value: "text-amber-900", icon: "bg-amber-100" },
+  green: { border: "border-green-200", bg: "bg-green-50",    label: "text-green-700", value: "text-green-900", icon: "bg-green-100" },
+};
+
+function StatCard({ label, value, loading, color = "gray" }: { label: string; value: number; loading: boolean; color?: StatColor }) {
+  const c = statColorMap[color];
+  return (
+    <div className={`rounded-xl border-2 ${c.border} ${c.bg} p-4 shadow-sm`}>
+      <p className={`text-xs font-semibold uppercase tracking-wide ${c.label}`}>{label}</p>
+      {loading
+        ? <div className="mt-2 h-8 w-14 animate-pulse rounded bg-gray-200" />
+        : <p className={`mt-1 text-3xl font-bold ${c.value}`}>{value}</p>
+      }
+    </div>
+  );
+}
+
 function StockBar({ value, max }: { value: number; max: number }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
@@ -416,18 +451,6 @@ function StockBar({ value, max }: { value: number; max: number }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, loading, accent }: { label: string; value: number; loading: boolean; accent?: boolean }) {
-  return (
-    <div className={`card p-4 ${accent ? "border-amber-300 bg-amber-50" : ""}`}>
-      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
-      {loading
-        ? <div className="mt-1 h-7 w-12 animate-pulse rounded bg-gray-200" />
-        : <p className={`mt-1 text-2xl font-bold ${accent ? "text-amber-700" : "text-gray-900"}`}>{value}</p>
-      }
     </div>
   );
 }

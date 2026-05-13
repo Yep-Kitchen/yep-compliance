@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -124,18 +124,39 @@ export default function EditChecklistPage() {
     setQuestions(remaining.map((q, i) => ({ ...q, order_index: i })));
   }
 
-  async function moveQuestion(index: number, dir: -1 | 1) {
-    const next = index + dir;
-    if (next < 0 || next >= questions.length) return;
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  function handleDragStart(index: number) {
+    setDragIndex(index);
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    if (index !== dragOverIndex) setDragOverIndex(index);
+  }
+
+  async function handleDrop(dropIndex: number) {
+    if (dragIndex === null || dragIndex === dropIndex) {
+      setDragIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
     const reordered = [...questions];
-    [reordered[index], reordered[next]] = [reordered[next], reordered[index]];
-    reordered[index].order_index = index;
-    reordered[next].order_index = next;
-    setQuestions(reordered);
-    await Promise.all([
-      supabase.from("questions").update({ order_index: index }).eq("id", reordered[index].id),
-      supabase.from("questions").update({ order_index: next }).eq("id", reordered[next].id),
-    ]);
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(dropIndex, 0, moved);
+    const withIndexes = reordered.map((q, i) => ({ ...q, order_index: i }));
+    setQuestions(withIndexes);
+    setDragIndex(null);
+    setDragOverIndex(null);
+    await Promise.all(
+      withIndexes.map(q => supabase.from("questions").update({ order_index: q.order_index }).eq("id", q.id))
+    );
+  }
+
+  function handleDragEnd() {
+    setDragIndex(null);
+    setDragOverIndex(null);
   }
 
   async function deleteChecklist() {
@@ -238,10 +259,14 @@ export default function EditChecklistPage() {
                 key={q.id}
                 question={q}
                 index={i}
-                total={questions.length}
+                isDragging={dragIndex === i}
+                isDragOver={dragOverIndex === i && dragIndex !== i}
                 onEdit={() => openEditQuestion(q)}
                 onDelete={() => deleteQuestion(q.id)}
-                onMove={(dir) => moveQuestion(i, dir)}
+                onDragStart={() => handleDragStart(i)}
+                onDragOver={(e) => handleDragOver(e, i)}
+                onDrop={() => handleDrop(i)}
+                onDragEnd={handleDragEnd}
               />
             ))}
             {questions.length === 0 && (
@@ -270,35 +295,35 @@ export default function EditChecklistPage() {
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function QuestionRow({ question, index, total, onEdit, onDelete, onMove }: {
+function QuestionRow({ question, index, isDragging, isDragOver, onEdit, onDelete, onDragStart, onDragOver, onDrop, onDragEnd }: {
   question: Question;
   index: number;
-  total: number;
+  isDragging: boolean;
+  isDragOver: boolean;
   onEdit: () => void;
   onDelete: () => void;
-  onMove: (dir: -1 | 1) => void;
+  onDragStart: () => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: () => void;
+  onDragEnd: () => void;
 }) {
   const typeLabel = QUESTION_TYPES.find(t => t.value === question.type)?.label ?? question.type;
   return (
-    <div className="card flex items-center gap-3 px-4 py-3">
-      {/* Reorder arrows */}
-      <div className="flex flex-col gap-0.5 shrink-0">
-        <button
-          onClick={() => onMove(-1)}
-          disabled={index === 0}
-          className="rounded p-0.5 text-gray-300 hover:text-gray-600 disabled:opacity-20 transition"
-          title="Move up"
-        >
-          <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M8 4l-5 5h10z"/></svg>
-        </button>
-        <button
-          onClick={() => onMove(1)}
-          disabled={index === total - 1}
-          className="rounded p-0.5 text-gray-300 hover:text-gray-600 disabled:opacity-20 transition"
-          title="Move down"
-        >
-          <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l5-5H3z"/></svg>
-        </button>
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={`card flex items-center gap-3 px-4 py-3 transition-all ${isDragging ? "opacity-40" : ""} ${isDragOver ? "ring-2 ring-brand ring-offset-1" : ""}`}
+    >
+      {/* Drag handle */}
+      <div className="shrink-0 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 transition select-none" title="Drag to reorder">
+        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="5.5" cy="4" r="1.2"/><circle cx="10.5" cy="4" r="1.2"/>
+          <circle cx="5.5" cy="8" r="1.2"/><circle cx="10.5" cy="8" r="1.2"/>
+          <circle cx="5.5" cy="12" r="1.2"/><circle cx="10.5" cy="12" r="1.2"/>
+        </svg>
       </div>
 
       {/* Number */}

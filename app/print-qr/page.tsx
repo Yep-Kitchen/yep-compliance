@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { Checklist } from "@/lib/types";
@@ -71,17 +71,15 @@ function PrintQRContent() {
 }
 
 function QRCard({ checklist, baseUrl }: { checklist: Checklist; baseUrl: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [qrSrc, setQrSrc] = useState<string>("");
   const url = `${baseUrl}/checklist/${checklist.id}`;
 
   useEffect(() => {
-    if (canvasRef.current) {
-      QRCode.toCanvas(canvasRef.current, url, {
-        width: 200,
-        margin: 2,
-        color: { dark: "#111827", light: "#ffffff" },
-      });
-    }
+    QRCode.toDataURL(url, {
+      width: 200,
+      margin: 2,
+      color: { dark: "#111827", light: "#ffffff" },
+    }).then(setQrSrc).catch(console.error);
   }, [url]);
 
   return (
@@ -93,7 +91,11 @@ function QRCard({ checklist, baseUrl }: { checklist: Checklist; baseUrl: string 
       </div>
 
       {/* QR */}
-      <canvas ref={canvasRef} className="rounded-lg" />
+      {qrSrc
+        ? /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={qrSrc} alt={`QR code for ${checklist.name}`} className="rounded-lg w-[200px] h-[200px]" />
+        : <div className="w-[200px] h-[200px] rounded-lg bg-gray-100 animate-pulse" />
+      }
 
       {/* Name */}
       <p className="mt-3 text-center text-sm font-bold text-gray-900 leading-tight">{checklist.name}</p>

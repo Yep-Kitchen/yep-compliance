@@ -49,21 +49,23 @@ const NAV = [
 ];
 
 const FREQ_GROUPS = [
-  { key: "daily",      label: "Daily & Shift",      freqs: ["per_shift_am", "per_shift_pm", "per_shift_eod"],    color: "blue"   },
-  { key: "production", label: "Production",          freqs: ["per_batch", "per_delivery", "per_dispatch"],        color: "violet" },
-  { key: "periodic",   label: "Periodic",            freqs: ["weekly", "monthly", "adhoc"],                       color: "emerald"},
-  { key: "people",     label: "People",              freqs: ["per_new_start"],                                     color: "amber"  },
-  { key: "incidents",  label: "Incidents",           freqs: ["per_complaint", "per_corrective_action"],           color: "rose"   },
+  { key: "daily",      label: "Daily",                      freqs: ["per_shift_am", "per_shift_pm", "per_shift_eod"],  color: "blue"   },
+  { key: "weekly",     label: "Weekly",                     freqs: ["weekly"],                                          color: "teal"   },
+  { key: "adhoc",      label: "Adhoc",                      freqs: ["adhoc", "monthly"],                                color: "emerald"},
+  { key: "production", label: "Production & Traceability",  freqs: ["per_batch", "per_delivery", "per_dispatch"],       color: "violet" },
+  { key: "people",     label: "People",                     freqs: ["per_new_start"],                                   color: "amber"  },
+  { key: "incidents",  label: "Incidents",                  freqs: ["per_complaint", "per_corrective_action"],          color: "rose"   },
 ] as const;
 
 type GroupColor = typeof FREQ_GROUPS[number]["color"];
 
 const GROUP_STYLES: Record<GroupColor, { header: string; dot: string; badge: string }> = {
-  blue:   { header: "border-blue-200 bg-blue-50 text-blue-800",   dot: "bg-blue-500",   badge: "bg-blue-100 text-blue-800" },
-  violet: { header: "border-violet-200 bg-violet-50 text-violet-800", dot: "bg-violet-500", badge: "bg-violet-100 text-violet-800" },
+  blue:   { header: "border-blue-200 bg-blue-50 text-blue-800",       dot: "bg-blue-500",    badge: "bg-blue-100 text-blue-800"    },
+  teal:   { header: "border-teal-200 bg-teal-50 text-teal-800",       dot: "bg-teal-500",    badge: "bg-teal-100 text-teal-800"    },
   emerald:{ header: "border-emerald-200 bg-emerald-50 text-emerald-800", dot: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-800" },
-  amber:  { header: "border-amber-200 bg-amber-50 text-amber-800", dot: "bg-amber-500",  badge: "bg-amber-100 text-amber-800" },
-  rose:   { header: "border-rose-200 bg-rose-50 text-rose-800",   dot: "bg-rose-500",   badge: "bg-rose-100 text-rose-800" },
+  violet: { header: "border-violet-200 bg-violet-50 text-violet-800", dot: "bg-violet-500",  badge: "bg-violet-100 text-violet-800" },
+  amber:  { header: "border-amber-200 bg-amber-50 text-amber-800",    dot: "bg-amber-500",   badge: "bg-amber-100 text-amber-800"  },
+  rose:   { header: "border-rose-200 bg-rose-50 text-rose-800",       dot: "bg-rose-500",    badge: "bg-rose-100 text-rose-800"    },
 };
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -80,6 +82,7 @@ export default function Dashboard() {
   const [skuStock, setSkuStock]             = useState<SkuStock[]>([]);
   const [loading, setLoading]               = useState(true);
   const [sidebarOpen, setSidebarOpen]       = useState(false);
+  const [prodMenuOpen, setProdMenuOpen]     = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -150,13 +153,10 @@ export default function Dashboard() {
         lg:translate-x-0
       `}>
         {/* Logo */}
-        <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-700/60">
+        <div className="px-4 py-5 border-b border-gray-700/60">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Yep Kitchen" className="h-8 w-auto brightness-0 invert" />
-          <div>
-            <p className="text-xs font-semibold text-white leading-tight">Compliance</p>
-            <p className="text-[10px] text-gray-400">Yep Kitchen</p>
-          </div>
+          <img src="/logo.png" alt="Yep Kitchen" className="h-10 w-auto" />
+          <p className="text-sm font-semibold text-white mt-2 leading-tight">Compliance Portal</p>
         </div>
 
         {/* Nav */}
@@ -167,6 +167,36 @@ export default function Dashboard() {
                 {section.title}
               </p>
               <ul className="space-y-0.5">
+                {/* Begin Production submenu — injected into the Production section */}
+                {section.title === "Production" && (
+                  <li>
+                    <button
+                      onClick={() => setProdMenuOpen(o => !o)}
+                      className="w-full flex items-center justify-between rounded-md px-2.5 py-2 text-sm text-white bg-brand hover:bg-brand/90 transition-colors font-medium"
+                    >
+                      Begin Production
+                      <svg className={`h-3.5 w-3.5 transition-transform ${prodMenuOpen ? "rotate-180" : ""}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6l4 4 4-4"/></svg>
+                    </button>
+                    {prodMenuOpen && (
+                      <ul className="mt-1 ml-2 space-y-0.5 border-l border-gray-700 pl-3">
+                        {checklists
+                          .filter(cl => cl.frequency === "per_batch")
+                          .map(cl => (
+                            <li key={cl.id}>
+                              <Link
+                                href={`/checklist/${cl.id}`}
+                                onClick={() => setSidebarOpen(false)}
+                                className="block rounded px-2 py-1.5 text-xs text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                              >
+                                {cl.name.replace(" — Production Record", "").replace(" - Production Record", "")}
+                              </Link>
+                            </li>
+                          ))
+                        }
+                      </ul>
+                    )}
+                  </li>
+                )}
                 {section.items.map(item => (
                   <li key={item.href}>
                     <Link
@@ -364,7 +394,7 @@ function ChecklistGroup({
   styles: { header: string; dot: string; badge: string };
   loading: boolean;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <div className="card overflow-hidden">
       <button

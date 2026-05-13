@@ -214,6 +214,155 @@ export default function QuestionField({ question, value, onChange, error }: Prop
     );
   }
 
+  if (question.type === "ingredient_table") {
+    const ingredients = (question.options ?? []).map((opt) => {
+      const [name, weight] = opt.split("|");
+      return { name: name ?? opt, intended: Number(weight ?? 0) };
+    });
+    let rows: Array<{ name: string; batch_code: string; actual_weight: string }>;
+    try {
+      rows = value ? JSON.parse(value) : [];
+    } catch {
+      rows = [];
+    }
+    if (rows.length !== ingredients.length) {
+      rows = ingredients.map((ing, i) => ({
+        name: ing.name,
+        batch_code: rows[i]?.batch_code ?? "",
+        actual_weight: rows[i]?.actual_weight ?? "",
+      }));
+    }
+    const updateRow = (idx: number, field: "batch_code" | "actual_weight", val: string) => {
+      const next = rows.map((r, i) => (i === idx ? { ...r, [field]: val } : r));
+      onChange(JSON.stringify(next));
+    };
+    return (
+      <div>
+        <label className="label">
+          {question.label}
+          {question.required && <span className="ml-1 text-brand">*</span>}
+        </label>
+        {question.hint && <p className="text-xs text-gray-500 -mt-0.5 mb-2">{question.hint}</p>}
+        <div className={`overflow-x-auto rounded-xl border ${error ? "border-red-300" : "border-gray-200"}`}>
+          <table className="w-full text-sm min-w-[500px]">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-3 py-2 text-left font-medium text-gray-700">Ingredient</th>
+                <th className="px-3 py-2 text-right font-medium text-gray-700 whitespace-nowrap">Target (g)</th>
+                <th className="px-3 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Batch Code</th>
+                <th className="px-3 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Actual (g)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {ingredients.map((ing, idx) => (
+                <tr key={ing.name} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                  <td className="px-3 py-2 font-medium text-gray-900 text-xs leading-tight">{ing.name}</td>
+                  <td className="px-3 py-2 text-right text-gray-500 text-xs tabular-nums">{ing.intended.toLocaleString()}</td>
+                  <td className="px-3 py-1.5">
+                    <input
+                      type="text"
+                      value={rows[idx]?.batch_code ?? ""}
+                      onChange={(e) => updateRow(idx, "batch_code", e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
+                      placeholder="Batch code"
+                    />
+                  </td>
+                  <td className="px-3 py-1.5">
+                    <input
+                      type="number"
+                      value={rows[idx]?.actual_weight ?? ""}
+                      onChange={(e) => updateRow(idx, "actual_weight", e.target.value)}
+                      className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
+                      placeholder="0"
+                      inputMode="decimal"
+                      step="0.1"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {errMsg}
+      </div>
+    );
+  }
+
+  if (question.type === "packing_runs") {
+    type PackRun = {
+      pack_weight: string;
+      jars_used: string;
+      jar_batch: string;
+      lids_count: string;
+      lids_batch: string;
+      packed_by: string;
+    };
+    const emptyRun: PackRun = { pack_weight: "", jars_used: "", jar_batch: "", lids_count: "", lids_batch: "", packed_by: "" };
+    let runs: PackRun[];
+    try {
+      runs = value ? JSON.parse(value) : [emptyRun];
+    } catch {
+      runs = [emptyRun];
+    }
+    if (runs.length === 0) runs = [emptyRun];
+    const updateRun = (idx: number, field: keyof PackRun, val: string) => {
+      const next = runs.map((r, i) => (i === idx ? { ...r, [field]: val } : r));
+      onChange(JSON.stringify(next));
+    };
+    const addRun = () => onChange(JSON.stringify([...runs, emptyRun]));
+    const removeRun = (idx: number) => {
+      if (runs.length === 1) return;
+      onChange(JSON.stringify(runs.filter((_, i) => i !== idx)));
+    };
+    return (
+      <div>
+        {base}
+        <div className="space-y-3">
+          {runs.map((run, idx) => (
+            <div key={idx} className={`rounded-xl border p-3 space-y-2 ${error ? "border-red-300" : "border-gray-200"}`}>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Run {idx + 1}</p>
+                {runs.length > 1 && (
+                  <button type="button" onClick={() => removeRun(idx)} className="text-xs text-gray-400 hover:text-red-500 transition">Remove</button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { field: "pack_weight" as const, label: "Pack weight (g)", placeholder: "227", numeric: true },
+                  { field: "jars_used" as const, label: "No. of jars", placeholder: "0", numeric: true },
+                  { field: "jar_batch" as const, label: "Jar batch no.", placeholder: "JB001", numeric: false },
+                  { field: "lids_count" as const, label: "No. of lids", placeholder: "0", numeric: true },
+                  { field: "lids_batch" as const, label: "Lids batch no.", placeholder: "LB001", numeric: false },
+                  { field: "packed_by" as const, label: "Packed by (initials)", placeholder: "SS", numeric: false },
+                ].map(({ field, label, placeholder, numeric }) => (
+                  <div key={field}>
+                    <label className="text-xs text-gray-500 block mb-0.5">{label}</label>
+                    <input
+                      type={numeric ? "number" : "text"}
+                      value={run[field]}
+                      onChange={(e) => updateRun(idx, field, e.target.value)}
+                      className="input text-sm py-1.5"
+                      placeholder={placeholder}
+                      inputMode={numeric ? "numeric" : "text"}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addRun}
+            className="w-full rounded-xl border-2 border-dashed border-gray-200 py-2 text-sm text-gray-500 hover:border-brand hover:text-brand transition"
+          >
+            + Add another packing run
+          </button>
+        </div>
+        {errMsg}
+      </div>
+    );
+  }
+
   if (question.type === "signature") {
     return <SignatureField question={question} value={value} onChange={onChange} error={error} />;
   }

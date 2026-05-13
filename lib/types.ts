@@ -7,7 +7,9 @@ export type QuestionType =
   | "dropdown"
   | "photo"
   | "signature"
-  | "multiple_choice";
+  | "multiple_choice"
+  | "ingredient_table"
+  | "packing_runs";
 
 export type ChecklistFrequency =
   | "per_shift_am"
@@ -20,7 +22,8 @@ export type ChecklistFrequency =
   | "adhoc"
   | "per_new_start"
   | "per_complaint"
-  | "per_corrective_action";
+  | "per_corrective_action"
+  | "per_batch";
 
 export interface Checklist {
   id: string;

@@ -18,6 +18,7 @@ export function frequencyLabel(f: ChecklistFrequency): string {
     per_new_start: "Per new start",
     per_complaint: "Per complaint",
     per_corrective_action: "Per corrective action",
+    per_batch: "Per batch",
   };
   return labels[f] ?? f;
 }

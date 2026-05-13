@@ -12,6 +12,7 @@ export const FREQUENCIES: { value: ChecklistFrequency; label: string }[] = [
   { value: "per_complaint", label: "Per complaint" },
   { value: "per_corrective_action", label: "Per corrective action" },
   { value: "adhoc", label: "Adhoc" },
+  { value: "per_batch", label: "Per batch" },
 ];
 
 export const QUESTION_TYPES: { value: QuestionType; label: string }[] = [

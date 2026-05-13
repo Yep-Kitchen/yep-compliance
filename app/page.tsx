@@ -12,16 +12,22 @@ export default function Dashboard() {
   const [pendingSignOff, setPendingSignOff] = useState<(Submission & { checklist: Checklist })[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [openDrafts, setOpenDrafts] = useState<Array<{ id: string; checklist_id: string; started_by: string; last_saved_at: string; checklist?: Checklist }>>([]);
 
   useEffect(() => {
     async function load() {
-      const [clRes, subRes] = await Promise.all([
+      const [clRes, subRes, draftRes] = await Promise.all([
         supabase.from("checklists").select("*").eq("active", true).order("name"),
         supabase
           .from("submissions")
           .select("*, checklist:checklists(*)")
           .order("submitted_at", { ascending: false })
           .limit(50),
+        supabase
+          .from("batch_drafts")
+          .select("*, checklist:checklists(name, category)")
+          .order("last_saved_at", { ascending: false })
+          .limit(10),
       ]);
       if (clRes.data) setChecklists(clRes.data as Checklist[]);
       if (subRes.data) {
@@ -29,6 +35,7 @@ export default function Dashboard() {
         setRecentSubmissions(all.slice(0, 10));
         setPendingSignOff(all.filter(s => !s.signed_off_at).slice(0, 20));
       }
+      if (draftRes.data) setOpenDrafts(draftRes.data as never);
       setLoading(false);
     }
     load();
@@ -121,6 +128,31 @@ export default function Dashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Open batch records */}
+            {openDrafts.length > 0 && (
+              <div>
+                <h2 className="mb-3 text-lg font-semibold text-gray-900">In-Progress Batches</h2>
+                <div className="space-y-2">
+                  {openDrafts.map(d => {
+                    const savedAt = new Date(d.last_saved_at);
+                    const mins = Math.round((Date.now() - savedAt.getTime()) / 60000);
+                    const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.round(mins / 60)}h ago`;
+                    return (
+                      <Link key={d.id} href={`/checklist/${d.checklist_id}`}
+                        className="card flex items-start gap-3 p-3 hover:border-brand/40 hover:shadow-md transition border-amber-200 bg-amber-50"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{(d.checklist as Checklist | undefined)?.name ?? "Batch record"}</p>
+                          <p className="text-xs text-gray-500">{d.started_by} · saved {timeLabel}</p>
+                        </div>
+                        <span className="badge bg-amber-200 text-amber-800 shrink-0">In progress</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Pending sign-off */}
             <div>
               <h2 className="mb-3 text-lg font-semibold text-gray-900">Awaiting Sign-Off</h2>

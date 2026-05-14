@@ -18,8 +18,11 @@ function emptyRow(): IngredientRow {
   return { ingredientId: "", julianCode: "", bestBefore: "", quantityG: "", litres: "" };
 }
 
+interface Supplier { id: string; name: string }
+
 export default function GoodsInPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [recentLots, setRecentLots] = useState<(IngredientLot & { ingredient: Ingredient })[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -27,27 +30,30 @@ export default function GoodsInPage() {
 
   const [rows, setRows] = useState<IngredientRow[]>([emptyRow()]);
   const [receivedDate, setReceivedDate] = useState(new Date().toISOString().slice(0, 10));
-  const [supplier, setSupplier] = useState("");
+  const [supplierId, setSupplierId] = useState("");
   const [loggedBy, setLoggedBy] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const densityById = Object.fromEntries(
     ingredients.filter(i => i.density_g_per_l != null).map(i => [i.id, i.density_g_per_l!])
   );
+  const unitById = Object.fromEntries(ingredients.map(i => [i.id, i.unit ?? "g"]));
 
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const [ingRes, lotRes] = await Promise.all([
+    const [ingRes, lotRes, supRes] = await Promise.all([
       supabase.from("ingredients").select("*").order("name"),
       supabase
         .from("ingredient_lots")
         .select("*, ingredient:ingredients(name)")
         .order("created_at", { ascending: false })
         .limit(20),
+      supabase.from("suppliers").select("id, name").order("name"),
     ]);
     if (ingRes.data) setIngredients(ingRes.data);
     if (lotRes.data) setRecentLots(lotRes.data as (IngredientLot & { ingredient: Ingredient })[]);
+    if (supRes.data) setSuppliers(supRes.data as Supplier[]);
     setLoading(false);
   }
 
@@ -81,6 +87,7 @@ export default function GoodsInPage() {
 
   function validate() {
     const errs: Record<string, string> = {};
+    if (!supplierId) errs.supplier = "Select a supplier";
     if (!loggedBy.trim()) errs.loggedBy = "Enter your name";
     rows.forEach((row, i) => {
       if (!row.ingredientId) errs[`name_${i}`] = "Required";
@@ -96,6 +103,7 @@ export default function GoodsInPage() {
     if (!validate()) return;
     setSaving(true);
 
+    const supplierName = suppliers.find(s => s.id === supplierId)?.name ?? null;
     const inserts = rows.map(row => {
       const qty = Number(row.quantityG);
       return {
@@ -104,7 +112,7 @@ export default function GoodsInPage() {
         quantity_received_g: qty,
         quantity_remaining_g: qty,
         received_date: receivedDate,
-        supplier: supplier.trim() || null,
+        supplier: supplierName,
         best_before_date: row.bestBefore || null,
         created_by: loggedBy.trim(),
       };
@@ -116,7 +124,7 @@ export default function GoodsInPage() {
 
     setSaved(true);
     setRows([emptyRow()]);
-    setSupplier("");
+    setSupplierId("");
     setErrors({});
     await load();
     setTimeout(() => setSaved(false), 3000);
@@ -151,14 +159,18 @@ export default function GoodsInPage() {
                 />
               </div>
               <div>
-                <label className="label">Supplier</label>
-                <input
-                  type="text"
-                  value={supplier}
-                  onChange={e => setSupplier(e.target.value)}
-                  className="input"
-                  placeholder="Optional"
-                />
+                <label className="label">Supplier *</label>
+                <select
+                  value={supplierId}
+                  onChange={e => setSupplierId(e.target.value)}
+                  className={`input ${errors.supplier ? "border-red-300" : ""}`}
+                >
+                  <option value="">Select supplier…</option>
+                  {suppliers.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                {errors.supplier && <p className="mt-1 text-xs text-red-600">{errors.supplier}</p>}
               </div>
               <div>
                 <label className="label">Logged by *</label>
@@ -196,16 +208,23 @@ export default function GoodsInPage() {
                   <div className="grid grid-cols-2 gap-3">
                     {/* Name */}
                     <div className="col-span-2">
-                      <label className="text-xs text-gray-500 block mb-0.5">Name *</label>
+                      <label className="text-xs text-gray-500 block mb-0.5">Item *</label>
                       <select
                         value={row.ingredientId}
                         onChange={e => updateRow(idx, "ingredientId", e.target.value)}
                         className={`input text-sm py-1.5 ${errors[`name_${idx}`] ? "border-red-300" : ""}`}
                       >
-                        <option value="">Select ingredient…</option>
-                        {ingredients.map(ing => (
-                          <option key={ing.id} value={ing.id}>{ing.name}</option>
-                        ))}
+                        <option value="">Select item…</option>
+                        <optgroup label="Ingredients">
+                          {ingredients.filter(i => i.type === "ingredient").map(ing => (
+                            <option key={ing.id} value={ing.id}>{ing.name}</option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Packaging">
+                          {ingredients.filter(i => i.type === "packaging").map(ing => (
+                            <option key={ing.id} value={ing.id}>{ing.name}</option>
+                          ))}
+                        </optgroup>
                       </select>
                       {errors[`name_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`name_${idx}`]}</p>}
                     </div>
@@ -235,7 +254,21 @@ export default function GoodsInPage() {
                     </div>
 
                     {/* Quantity */}
-                    {densityById[row.ingredientId] ? (
+                    {unitById[row.ingredientId] === "units" ? (
+                      <div className="col-span-2">
+                        <label className="text-xs text-gray-500 block mb-0.5">Quantity (units) *</label>
+                        <input
+                          type="number"
+                          value={row.quantityG}
+                          onChange={e => updateRow(idx, "quantityG", e.target.value)}
+                          className={`input text-sm py-1.5 ${errors[`qty_${idx}`] ? "border-red-300" : ""}`}
+                          placeholder="0"
+                          inputMode="numeric"
+                          min="0"
+                        />
+                        {errors[`qty_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`qty_${idx}`]}</p>}
+                      </div>
+                    ) : densityById[row.ingredientId] ? (
                       <>
                         <div>
                           <label className="text-xs text-gray-500 block mb-0.5">Volume (L) *</label>

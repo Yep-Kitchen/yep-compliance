@@ -79,6 +79,8 @@ export interface TeamMember {
 export interface Ingredient {
   id: string;
   name: string;
+  type: "ingredient" | "packaging";
+  unit: "g" | "units";
   price_per_kg: number | null;
   supplier_id: string | null;
   density_g_per_l: number | null;

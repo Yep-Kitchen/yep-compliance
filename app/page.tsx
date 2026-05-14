@@ -249,7 +249,7 @@ export default function Dashboard() {
             <section className="card overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-700">Finished Goods</h3>
-                <Link href="/admin/goods-out" className="text-xs text-brand hover:underline">Log dispatch →</Link>
+                <Link href="/admin/goods-out" className="text-xs text-brown/70 hover:text-brown hover:underline">Log dispatch →</Link>
               </div>
               <div className="divide-y divide-gray-100">
                 {loading
@@ -273,7 +273,7 @@ export default function Dashboard() {
             <section className="card overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-700">Recent Submissions</h3>
-                <Link href="/dashboard" className="text-xs text-brand hover:underline">View all →</Link>
+                <Link href="/dashboard" className="text-xs text-brown/70 hover:text-brown hover:underline">View all →</Link>
               </div>
               <div className="divide-y divide-gray-100">
                 {loading

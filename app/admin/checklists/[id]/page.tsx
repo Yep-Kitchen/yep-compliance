@@ -201,7 +201,7 @@ export default function EditChecklistPage() {
             <div className="space-y-4">
               <h2 className="font-semibold text-gray-900">Checklist details</h2>
               <div>
-                <label className="label">Name <span className="text-brand">*</span></label>
+                <label className="label">Name <span className="text-brown/60">*</span></label>
                 <input type="text" value={metaName} onChange={e => setMetaName(e.target.value)} className="input" />
               </div>
               <div>
@@ -333,7 +333,7 @@ function QuestionRow({ question, index, isDragging, isDragOver, onEdit, onDelete
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate">
           {question.label}
-          {question.required && <span className="ml-1 text-brand text-xs">*</span>}
+          {question.required && <span className="ml-1 text-brown/60 text-xs">*</span>}
         </p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className="badge bg-gray-100 text-gray-500">{typeLabel}</span>
@@ -367,7 +367,7 @@ function QuestionEditor({ question, isNew, saving, onChange, onSave, onCancel }:
         <h3 className="font-semibold text-gray-900">{isNew ? "Add question" : "Edit question"}</h3>
 
         <div>
-          <label className="label">Question text <span className="text-brand">*</span></label>
+          <label className="label">Question text <span className="text-brown/60">*</span></label>
           <textarea
             value={question.label ?? ""}
             onChange={e => onChange({ ...question, label: e.target.value })}

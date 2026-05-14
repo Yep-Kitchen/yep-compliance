@@ -317,7 +317,7 @@ export default function GoodsInPage() {
               <button
                 type="button"
                 onClick={addRow}
-                className="w-full rounded-xl border-2 border-dashed border-gray-200 py-2.5 text-sm text-gray-500 hover:border-brand hover:text-brand transition"
+                className="w-full rounded-xl border-2 border-dashed border-gray-200 py-2.5 text-sm text-gray-500 hover:border-brand hover:text-brown transition"
               >
                 + Add another ingredient
               </button>

@@ -200,7 +200,7 @@ function SubmissionsPageInner() {
                 key={v}
                 onClick={() => setFilterSigned(v)}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  filterSigned === v ? "bg-brand text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  filterSigned === v ? "bg-brand text-brown" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 {v === "all" ? "All" : v === "pending" ? "Pending" : "Signed off"}
@@ -255,7 +255,7 @@ function SubmissionsPageInner() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <Link href={`/submission/${s.id}`} className="text-brand hover:underline font-medium">
+                        <Link href={`/submission/${s.id}`} className="text-brown/80 hover:text-brown hover:underline font-medium">
                           View
                         </Link>
                       </td>

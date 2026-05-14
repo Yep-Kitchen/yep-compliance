@@ -8,11 +8,18 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        serif: ["var(--font-instrument-serif)", "Georgia", "serif"],
+      },
       colors: {
         brand: {
           DEFAULT: "#FBEC5D",
           dark: "#EDD930",
           light: "#FDF07A",
+        },
+        brown: {
+          DEFAULT: "#3C3425",
+          light: "#5a4e38",
         },
       },
     },

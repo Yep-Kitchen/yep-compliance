@@ -43,7 +43,7 @@ export default function NewChecklistPage() {
       <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
         <form onSubmit={handleSubmit} className="card p-6 space-y-5">
           <div>
-            <label className="label">Checklist name <span className="text-brand">*</span></label>
+            <label className="label">Checklist name <span className="text-brown/60">*</span></label>
             <input
               type="text"
               value={name}
@@ -55,7 +55,7 @@ export default function NewChecklistPage() {
           </div>
 
           <div>
-            <label className="label">Frequency <span className="text-brand">*</span></label>
+            <label className="label">Frequency <span className="text-brown/60">*</span></label>
             <select value={frequency} onChange={e => setFrequency(e.target.value as ChecklistFrequency)} className="input">
               {FREQUENCIES.map(f => (
                 <option key={f.value} value={f.value}>{f.label}</option>

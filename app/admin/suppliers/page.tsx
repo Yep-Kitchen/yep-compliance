@@ -222,7 +222,7 @@ export default function SuppliersPage() {
             <button
               key={val}
               onClick={() => setFilter(val)}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition ${filter === val ? "bg-brand text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition ${filter === val ? "bg-brand text-brown" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
             >
               {label}
             </button>

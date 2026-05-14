@@ -41,7 +41,7 @@ function SignOutButton() {
   return (
     <button
       onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
-      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-colors text-left"
+      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-sm text-brown/50 hover:bg-brown/10 hover:text-brown transition-colors text-left"
     >
       <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M13 7l3 3m0 0l-3 3m3-3H7m6-7h2a2 2 0 012 2v12a2 2 0 01-2 2h-2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -79,23 +79,23 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
       )}
 
       <aside className={`
-        fixed top-0 left-0 z-40 h-screen w-56 bg-gray-900 flex flex-col
+        fixed top-0 left-0 z-40 h-screen w-56 bg-brand flex flex-col
         transition-transform duration-200
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0
       `}>
-        {/* Logo */}
-        <div className="px-4 py-5 border-b border-gray-700/60">
+        {/* Logo / wordmark */}
+        <div className="px-4 py-5 border-b border-brown/15">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Yep Kitchen" className="h-10 w-auto" />
-          <p className="text-sm font-semibold text-brand mt-2 leading-tight tracking-wide">Kernel</p>
+          <p className="font-serif text-xl text-brown mt-2 leading-tight">Kernel</p>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
           {NAV.map(section => (
             <div key={section.title}>
-              <p className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+              <p className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-brown/45">
                 {section.title}
               </p>
               <ul className="space-y-0.5">
@@ -103,7 +103,7 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
                   <li>
                     <button
                       onClick={() => setProdMenuOpen(o => !o)}
-                      className="w-full flex items-center justify-between rounded-md px-2.5 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                      className="w-full flex items-center justify-between rounded-md px-2.5 py-2 text-sm text-brown/75 hover:bg-brown/10 hover:text-brown transition-colors"
                     >
                       Begin Production
                       <svg className={`h-3.5 w-3.5 transition-transform ${prodMenuOpen ? "rotate-180" : ""}`}
@@ -112,13 +112,13 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
                       </svg>
                     </button>
                     {prodMenuOpen && (
-                      <ul className="mt-1 ml-2 space-y-0.5 border-l border-gray-700 pl-3">
+                      <ul className="mt-1 ml-2 space-y-0.5 border-l border-brown/20 pl-3">
                         {batchChecklists.map(cl => (
                           <li key={cl.id}>
                             <Link
                               href={`/checklist/${cl.id}`}
                               onClick={onClose}
-                              className="block rounded px-2 py-1.5 text-xs text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                              className="block rounded px-2 py-1.5 text-xs text-brown/65 hover:bg-brown/10 hover:text-brown transition-colors"
                             >
                               {cl.name.replace(" — Production Record", "").replace(" - Production Record", "")}
                             </Link>
@@ -135,8 +135,8 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
                       onClick={onClose}
                       className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
                         pathname === item.href || pathname.startsWith(item.href + "/")
-                          ? "bg-brand/15 text-brand font-semibold"
-                          : "text-gray-300 hover:bg-white/10 hover:text-white"
+                          ? "bg-brown/10 text-brown font-semibold"
+                          : "text-brown/75 hover:bg-brown/10 hover:text-brown"
                       }`}
                     >
                       {item.label}
@@ -148,7 +148,7 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
           ))}
         </nav>
 
-        <div className="px-3 py-4 border-t border-gray-700/60">
+        <div className="px-3 py-4 border-t border-brown/15">
           <SignOutButton />
         </div>
       </aside>

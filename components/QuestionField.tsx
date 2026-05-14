@@ -9,9 +9,28 @@ interface Props {
   onChange: (value: string) => void;
   error?: string;
   ingredientLots?: Record<string, IngredientLot[]>; // ingredient name → available lots
+  densityByName?: Record<string, number>; // ingredient name → g/L
 }
 
-export default function QuestionField({ question, value, onChange, error, ingredientLots }: Props) {
+function findLots(ingredientLots: Record<string, IngredientLot[]>, name: string): IngredientLot[] {
+  if (ingredientLots[name]) return ingredientLots[name];
+  const lc = name.toLowerCase();
+  const match = Object.entries(ingredientLots).find(([key]) =>
+    key.toLowerCase().includes(lc) || lc.includes(key.toLowerCase())
+  );
+  return match?.[1] ?? [];
+}
+
+function findDensity(densityByName: Record<string, number>, name: string): number | null {
+  if (densityByName[name] != null) return densityByName[name];
+  const lc = name.toLowerCase();
+  const match = Object.entries(densityByName).find(([key]) =>
+    key.toLowerCase().includes(lc) || lc.includes(key.toLowerCase())
+  );
+  return match?.[1] ?? null;
+}
+
+export default function QuestionField({ question, value, onChange, error, ingredientLots, densityByName }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const base = (
@@ -252,7 +271,8 @@ export default function QuestionField({ question, value, onChange, error, ingred
           if (j !== lotIdx) return lot;
           const updated = { ...lot, [field]: val };
           if (field === "lot_id") {
-            const lot = (ingredientLots?.[ingredients[ingIdx].name] ?? []).find(l => l.id === val);
+            const lots = findLots(ingredientLots ?? {}, ingredients[ingIdx].name);
+            const lot = lots.find(l => l.id === val);
             if (lot) updated.julian_code = lot.julian_code;
           }
           return updated;
@@ -288,14 +308,18 @@ export default function QuestionField({ question, value, onChange, error, ingred
         <div className={`space-y-2 ${error ? "rounded-xl border border-red-300 p-2" : ""}`}>
           {ingredients.map((ing, ingIdx) => {
             const row = rows[ingIdx];
-            const availableLots = ingredientLots?.[ing.name] ?? [];
+            const availableLots = findLots(ingredientLots ?? {}, ing.name);
+            const density = findDensity(densityByName ?? {}, ing.name);
             const totalEntered = (row?.lots ?? []).reduce((sum, l) => sum + (Number(l.weight_g) || 0), 0);
             const diff = totalEntered - ing.intended;
+            const targetLabel = density
+              ? `${ing.intended.toLocaleString()}g (${(ing.intended / density).toFixed(2)}L)`
+              : `${ing.intended.toLocaleString()}g`;
             return (
               <div key={ing.name} className="rounded-xl border border-gray-200 bg-white p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-gray-900">{ing.name}</p>
-                  <span className="text-xs text-gray-500 tabular-nums">Target: {ing.intended.toLocaleString()}g</span>
+                  <span className="text-xs text-gray-500 tabular-nums">Target: {targetLabel}</span>
                 </div>
                 {(row?.lots ?? [emptyLot]).map((lotUse, lotIdx) => (
                   <div key={lotIdx} className="flex gap-2 items-center">
@@ -321,15 +345,39 @@ export default function QuestionField({ question, value, onChange, error, ingred
                         placeholder="Julian code (e.g. 26124)"
                       />
                     )}
-                    <input
-                      type="number"
-                      value={lotUse.weight_g}
-                      onChange={(e) => updateLot(ingIdx, lotIdx, "weight_g", e.target.value)}
-                      className="input w-28 shrink-0 text-sm py-1.5"
-                      placeholder="Weight (g)"
-                      inputMode="decimal"
-                      step="0.1"
-                    />
+                    {density ? (
+                      <>
+                        <input
+                          type="number"
+                          value={lotUse.weight_g ? (Number(lotUse.weight_g) / density).toFixed(2) : ""}
+                          onChange={(e) => {
+                            const litres = parseFloat(e.target.value);
+                            updateLot(ingIdx, lotIdx, "weight_g", e.target.value ? String(Math.round(litres * density)) : "");
+                          }}
+                          className="input w-24 shrink-0 text-sm py-1.5"
+                          placeholder="Litres"
+                          inputMode="decimal"
+                          step="0.01"
+                        />
+                        <input
+                          type="number"
+                          value={lotUse.weight_g}
+                          readOnly
+                          className="input w-24 shrink-0 text-sm py-1.5 bg-gray-50 text-gray-400 cursor-default"
+                          placeholder="g (auto)"
+                        />
+                      </>
+                    ) : (
+                      <input
+                        type="number"
+                        value={lotUse.weight_g}
+                        onChange={(e) => updateLot(ingIdx, lotIdx, "weight_g", e.target.value)}
+                        className="input w-28 shrink-0 text-sm py-1.5"
+                        placeholder="Weight (g)"
+                        inputMode="decimal"
+                        step="0.1"
+                      />
+                    )}
                     {(row?.lots.length ?? 1) > 1 && (
                       <button type="button" onClick={() => removeLot(ingIdx, lotIdx)}
                         className="text-lg text-gray-300 hover:text-red-400 transition leading-none shrink-0">×</button>
@@ -343,7 +391,10 @@ export default function QuestionField({ question, value, onChange, error, ingred
                   </button>
                   {totalEntered > 0 && (
                     <span className={`text-xs font-medium tabular-nums ${Math.abs(diff) <= 100 ? "text-green-600" : "text-amber-600"}`}>
-                      {totalEntered.toLocaleString()}g total {diff === 0 ? "✓" : `(${diff > 0 ? "+" : ""}${diff.toLocaleString()}g)`}
+                      {density
+                        ? `${(totalEntered / density).toFixed(2)}L (${totalEntered.toLocaleString()}g) ${diff === 0 ? "✓" : `(${diff > 0 ? "+" : ""}${diff.toLocaleString()}g)`}`
+                        : `${totalEntered.toLocaleString()}g total ${diff === 0 ? "✓" : `(${diff > 0 ? "+" : ""}${diff.toLocaleString()}g)`}`
+                      }
                     </span>
                   )}
                 </div>

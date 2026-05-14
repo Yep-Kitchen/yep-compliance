@@ -58,6 +58,7 @@ export default function ChecklistPage() {
 
   // Ingredient lots for production checklists (ingredient name → lots)
   const [ingredientLots, setIngredientLots] = useState<Record<string, IngredientLot[]>>({});
+  const [densityByName, setDensityByName] = useState<Record<string, number>>({});
 
   // Draft save state (Production checklists only)
   const [existingDraft, setExistingDraft] = useState<BatchDraft | null>(null);
@@ -82,17 +83,20 @@ export default function ChecklistPage() {
       if (clRes.data?.category === "Production") {
         const { data: lots } = await supabase
           .from("ingredient_lots")
-          .select("*, ingredient:ingredients(name)")
+          .select("*, ingredient:ingredients(name, density_g_per_l)")
           .gt("quantity_remaining_g", 0)
           .order("julian_code");
         if (lots) {
           const byName: Record<string, IngredientLot[]> = {};
-          for (const lot of lots as (IngredientLot & { ingredient: { name: string } })[]) {
+          const density: Record<string, number> = {};
+          for (const lot of lots as (IngredientLot & { ingredient: { name: string; density_g_per_l: number | null } })[]) {
             const name = lot.ingredient?.name ?? "";
             if (!byName[name]) byName[name] = [];
             byName[name].push(lot);
+            if (lot.ingredient?.density_g_per_l != null) density[name] = lot.ingredient.density_g_per_l;
           }
           setIngredientLots(byName);
+          setDensityByName(density);
         }
         const { data: drafts } = await supabase
           .from("batch_drafts")
@@ -426,6 +430,7 @@ export default function ChecklistPage() {
                 onChange={(val) => handleAnswerChange(q.id, val)}
                 error={errors[q.id]}
                 ingredientLots={ingredientLots}
+                densityByName={densityByName}
               />
             </div>
           ))}

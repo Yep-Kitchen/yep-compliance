@@ -50,21 +50,15 @@ const NAV = [
 ];
 
 const FREQ_GROUPS = [
-  { key: "daily",      label: "Daily",                      freqs: ["per_shift_am", "per_shift_pm", "per_shift_eod"],  color: "a" },
-  { key: "weekly",     label: "Weekly",                     freqs: ["weekly"],                                          color: "b" },
-  { key: "adhoc",      label: "Adhoc",                      freqs: ["adhoc", "monthly"],                                color: "a" },
-  { key: "production", label: "Production & Traceability",  freqs: ["per_batch", "per_delivery", "per_dispatch"],       color: "b" },
-  { key: "people",     label: "People",                     freqs: ["per_new_start"],                                   color: "a" },
-  { key: "incidents",  label: "Incidents",                  freqs: ["per_complaint", "per_corrective_action"],          color: "red" },
+  { key: "daily",      label: "Daily",                      freqs: ["per_shift_am", "per_shift_pm", "per_shift_eod"] },
+  { key: "weekly",     label: "Weekly",                     freqs: ["weekly"]                                        },
+  { key: "adhoc",      label: "Adhoc",                      freqs: ["adhoc", "monthly"]                              },
+  { key: "production", label: "Production & Traceability",  freqs: ["per_batch", "per_delivery", "per_dispatch"]     },
+  { key: "people",     label: "People",                     freqs: ["per_new_start"]                                 },
+  { key: "incidents",  label: "Incidents",                  freqs: ["per_complaint", "per_corrective_action"]        },
 ] as const;
 
-type GroupColor = typeof FREQ_GROUPS[number]["color"];
-
-const GROUP_STYLES: Record<GroupColor, { header: string; dot: string; badge: string }> = {
-  a:   { header: "border-brand/50 bg-brand-light text-brown",       dot: "bg-brand",      badge: "bg-brand-light text-brown"  },
-  b:   { header: "border-brand-dark/40 bg-brand-cream text-brown",  dot: "bg-brand-dark", badge: "bg-brand-cream text-brown"  },
-  red: { header: "border-red-200 bg-red-50 text-red-800",           dot: "bg-red-500",    badge: "bg-red-100 text-red-800"    },
-};
+const GROUP_STYLE = { header: "border-brand/50 bg-brand-light text-brown", dot: "bg-brand", badge: "bg-brand-light text-brown" };
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -217,7 +211,7 @@ export default function Dashboard() {
               {FREQ_GROUPS.map(group => {
                 const items = checklists.filter(cl => (group.freqs as readonly string[]).includes(cl.frequency));
                 if (items.length === 0) return null;
-                const styles = GROUP_STYLES[group.color];
+                const styles = GROUP_STYLE;
                 return (
                   <ChecklistGroup
                     key={group.key}
@@ -232,7 +226,7 @@ export default function Dashboard() {
                 <ChecklistGroup
                   label="Other"
                   items={uncategorised}
-                  styles={GROUP_STYLES.a}
+                  styles={GROUP_STYLE}
                   loading={loading}
                 />
               )}

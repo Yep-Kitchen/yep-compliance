@@ -133,8 +133,8 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
                       onClick={onClose}
                       className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
                         pathname === item.href || pathname.startsWith(item.href + "/")
-                          ? "bg-brown/10 text-brown font-semibold"
-                          : "text-brown hover:bg-brown/10"
+                          ? "bg-brand text-brown font-semibold"
+                          : "text-brown hover:bg-brand/30"
                       }`}
                     >
                       {item.label}

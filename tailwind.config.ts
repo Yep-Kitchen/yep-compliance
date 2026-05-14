@@ -13,14 +13,14 @@ const config: Config = {
       },
       colors: {
         brand: {
-          DEFAULT: "#F5C65A",   // golden – buttons, active states
-          dark:    "#C9A24A",   // darker gold – hover
-          light:   "#FFE08A",   // light yellow – sidebar
-          cream:   "#FFF6D5",   // very light cream – page bg
+          DEFAULT: "#F5C65A",   // golden – buttons, active nav accent ONLY
+          dark:    "#C9A24A",   // darker gold – hover state
+          light:   "#EDE5D0",   // warm cream – sidebar bg
+          cream:   "#F7F2E8",   // ivory – page bg
         },
         brown: {
-          DEFAULT: "#6B5B3E",   // dark warm brown – text
-          light:   "#8a7355",
+          DEFAULT: "#3A3520",   // near-black warm – headings & primary text
+          light:   "#7A7050",   // muted warm – secondary text
         },
       },
     },

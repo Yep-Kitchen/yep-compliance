@@ -84,11 +84,9 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0
       `}>
-        {/* Logo / wordmark */}
-        <div className="px-4 py-5 border-b border-brown/15">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Yep Kitchen" className="h-10 w-auto" />
-          <p className="font-serif text-xl text-brown mt-2 leading-tight">Kernel</p>
+        {/* Wordmark */}
+        <div className="px-5 py-5 border-b border-brown/15">
+          <p className="font-serif text-4xl text-brown leading-none tracking-tight">Kernel</p>
         </div>
 
         {/* Nav */}

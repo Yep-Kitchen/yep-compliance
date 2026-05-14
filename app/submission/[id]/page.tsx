@@ -21,10 +21,21 @@ export default function SubmissionPage() {
   const [managerName, setManagerName] = useState("Tom Palmer");
   const [showSignOff, setShowSignOff] = useState(false);
   const [notes, setNotes] = useState("");
+  const [pendingIds, setPendingIds] = useState<string[]>([]);
 
   useEffect(() => {
     load();
+    loadPending();
   }, [id]);
+
+  async function loadPending() {
+    const { data } = await supabase
+      .from("submissions")
+      .select("id")
+      .is("signed_off_at", null)
+      .order("submitted_at", { ascending: true });
+    setPendingIds((data ?? []).map((s: { id: string }) => s.id));
+  }
 
   async function load() {
     const { data, error } = await supabase
@@ -65,7 +76,7 @@ export default function SubmissionPage() {
       .eq("id", id);
 
     if (!error) {
-      await load();
+      await Promise.all([load(), loadPending()]);
       setShowSignOff(false);
     } else {
       alert("Sign-off failed — please try again.");
@@ -90,6 +101,8 @@ export default function SubmissionPage() {
   }
 
   const isSigned = !!submission.signed_off_at;
+  const nextPendingId = pendingIds.find(pid => pid !== id) ?? null;
+  const pendingCount = pendingIds.filter(pid => pid !== id).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -103,11 +116,21 @@ export default function SubmissionPage() {
             <span className="text-gray-300">/</span>
             <span className="text-sm font-medium text-gray-700">{submission.checklist?.name}</span>
           </div>
-          {isSigned ? (
-            <span className="badge bg-green-100 text-green-700 px-3 py-1">Signed off ✓</span>
-          ) : (
-            <span className="badge bg-amber-100 text-amber-700 px-3 py-1">Pending review</span>
-          )}
+          <div className="flex items-center gap-2">
+            {isSigned ? (
+              <span className="badge bg-green-100 text-green-700 px-3 py-1">Signed off ✓</span>
+            ) : (
+              <span className="badge bg-amber-100 text-amber-700 px-3 py-1">Pending review</span>
+            )}
+            {nextPendingId && (
+              <button
+                onClick={() => router.push(`/submission/${nextPendingId}`)}
+                className="btn-primary text-xs py-1 px-3"
+              >
+                Next to approve ({pendingCount}) →
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -151,6 +174,16 @@ export default function SubmissionPage() {
             <AnswerRow key={a.id} answer={a} />
           ))}
         </div>
+
+        {/* Next pending — shown after sign-off */}
+        {isSigned && nextPendingId && (
+          <div className="card p-5 flex items-center justify-between bg-brand/5 border-brand/20">
+            <p className="text-sm font-medium text-gray-900">{pendingCount} more submission{pendingCount !== 1 ? "s" : ""} waiting for approval</p>
+            <button onClick={() => router.push(`/submission/${nextPendingId}`)} className="btn-primary">
+              Next to approve →
+            </button>
+          </div>
+        )}
 
         {/* Sign off */}
         {!isSigned && (

@@ -7,9 +7,12 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "https://dudchdacsrgdnenkqmyo.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1ZGNoZGFjc3JnZG5lbmtxbXlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MDQ1NTUsImV4cCI6MjA5NDE4MDU1NX0.J94RDCFVm_bQ_VTY0B1TBiTdJ_QcbwKl01dYY4zGrBM";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY env vars");
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

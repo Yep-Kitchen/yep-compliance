@@ -19,6 +19,7 @@ export default function StockPage() {
   const [editing, setEditing]         = useState<IngredientWithLots | null>(null);
   const [editPrice, setEditPrice]     = useState("");
   const [editSupplier, setEditSupplier] = useState("");
+  const [editDensity, setEditDensity] = useState("");
   const [saving, setSaving]           = useState(false);
   const [saveError, setSaveError]     = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -56,6 +57,7 @@ export default function StockPage() {
     setEditing(ing);
     setEditPrice(ing.price_per_kg != null ? String(ing.price_per_kg) : "");
     setEditSupplier(ing.supplier_id ?? "");
+    setEditDensity(ing.density_g_per_l != null ? String(ing.density_g_per_l) : "");
     setSaveError("");
     setDeleteConfirm(false);
   }
@@ -69,6 +71,7 @@ export default function StockPage() {
       .update({
         price_per_kg: editPrice ? parseFloat(editPrice) : null,
         supplier_id: editSupplier || null,
+        density_g_per_l: editDensity ? parseFloat(editDensity) : null,
       })
       .eq("id", editing.id);
     setSaving(false);
@@ -305,6 +308,20 @@ return;
                     </span>
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Density (g per litre)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  className="input w-full"
+                  placeholder="e.g. 917 for oil"
+                  value={editDensity}
+                  onChange={e => setEditDensity(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-gray-400">Set this for liquids so Goods In can accept litres</p>
               </div>
             </div>
 

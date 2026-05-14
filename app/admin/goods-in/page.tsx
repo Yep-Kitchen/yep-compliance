@@ -11,10 +11,11 @@ interface IngredientRow {
   julianCode: string;
   bestBefore: string;
   quantityG: string;
+  litres: string;
 }
 
 function emptyRow(): IngredientRow {
-  return { ingredientId: "", julianCode: "", bestBefore: "", quantityG: "" };
+  return { ingredientId: "", julianCode: "", bestBefore: "", quantityG: "", litres: "" };
 }
 
 export default function GoodsInPage() {
@@ -29,6 +30,10 @@ export default function GoodsInPage() {
   const [supplier, setSupplier] = useState("");
   const [loggedBy, setLoggedBy] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const densityById = Object.fromEntries(
+    ingredients.filter(i => i.density_g_per_l != null).map(i => [i.id, i.density_g_per_l!])
+  );
 
   useEffect(() => { load(); }, []);
 
@@ -47,7 +52,23 @@ export default function GoodsInPage() {
   }
 
   function updateRow(idx: number, field: keyof IngredientRow, value: string) {
-    setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+    setRows(prev => prev.map((r, i) => {
+      if (i !== idx) return r;
+      const updated = { ...r, [field]: value };
+      if (field === "ingredientId") {
+        updated.litres = "";
+        updated.quantityG = "";
+      }
+      if (field === "litres") {
+        const density = densityById[r.ingredientId];
+        if (density && value) {
+          updated.quantityG = String(Math.round(parseFloat(value) * density));
+        } else {
+          updated.quantityG = "";
+        }
+      }
+      return updated;
+    }));
   }
 
   function addRow() {
@@ -214,19 +235,48 @@ export default function GoodsInPage() {
                     </div>
 
                     {/* Quantity */}
-                    <div>
-                      <label className="text-xs text-gray-500 block mb-0.5">Quantity (g) *</label>
-                      <input
-                        type="number"
-                        value={row.quantityG}
-                        onChange={e => updateRow(idx, "quantityG", e.target.value)}
-                        className={`input text-sm py-1.5 ${errors[`qty_${idx}`] ? "border-red-300" : ""}`}
-                        placeholder="0"
-                        inputMode="numeric"
-                        min="0"
-                      />
-                      {errors[`qty_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`qty_${idx}`]}</p>}
-                    </div>
+                    {densityById[row.ingredientId] ? (
+                      <>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-0.5">Volume (L) *</label>
+                          <input
+                            type="number"
+                            value={row.litres}
+                            onChange={e => updateRow(idx, "litres", e.target.value)}
+                            className={`input text-sm py-1.5 ${errors[`qty_${idx}`] ? "border-red-300" : ""}`}
+                            placeholder="0.00"
+                            inputMode="decimal"
+                            step="0.01"
+                            min="0"
+                          />
+                          {errors[`qty_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`qty_${idx}`]}</p>}
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-0.5">Weight (g)</label>
+                          <input
+                            type="number"
+                            value={row.quantityG}
+                            readOnly
+                            className="input text-sm py-1.5 bg-gray-50 text-gray-500 cursor-default"
+                            placeholder="Auto-calculated"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <label className="text-xs text-gray-500 block mb-0.5">Quantity (g) *</label>
+                        <input
+                          type="number"
+                          value={row.quantityG}
+                          onChange={e => updateRow(idx, "quantityG", e.target.value)}
+                          className={`input text-sm py-1.5 ${errors[`qty_${idx}`] ? "border-red-300" : ""}`}
+                          placeholder="0"
+                          inputMode="numeric"
+                          min="0"
+                        />
+                        {errors[`qty_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`qty_${idx}`]}</p>}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

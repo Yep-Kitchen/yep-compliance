@@ -81,6 +81,7 @@ export interface Ingredient {
   name: string;
   price_per_kg: number | null;
   supplier_id: string | null;
+  density_g_per_l: number | null;
   created_at: string;
 }
 

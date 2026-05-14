@@ -23,7 +23,7 @@ const NAV = [
     items: [
       { label: "Goods In", href: "/admin/goods-in" },
       { label: "Goods Out", href: "/admin/goods-out" },
-      { label: "Stock Levels", href: "/admin/stock" },
+      { label: "Raw Materials", href: "/admin/stock" },
     ],
   },
   {

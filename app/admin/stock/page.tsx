@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Ingredient, IngredientLot } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import AppSidebar from "@/components/AppSidebar";
 
 interface Supplier { id: string; name: string }
 type ItemType = "ingredient" | "packaging" | "supplies";
@@ -46,6 +47,7 @@ export default function RawMaterialsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const isNew = editing?.id === "";
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -153,60 +155,75 @@ export default function RawMaterialsPage() {
   const priceLabel = editUnit === "units" ? "Price per unit (£)" : "Price per kg (£)";
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="border-b border-gray-200 bg-white shadow-sm shrink-0">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="btn-ghost text-xs px-2">← Dashboard</Link>
-            <h1 className="text-base font-semibold text-gray-900">Raw Materials</h1>
-          </div>
-          <Link href="/admin/goods-in" className="btn-primary text-xs">Log Delivery</Link>
+    <div className="flex min-h-screen bg-gray-50">
+      <AppSidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 lg:ml-56 flex flex-col min-h-screen">
+
+        {/* Mobile top bar */}
+        <div className="lg:hidden sticky top-0 z-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-3">
+          <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded text-gray-600 hover:bg-gray-100">
+            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <rect y="3" width="20" height="2" rx="1"/><rect y="9" width="20" height="2" rx="1"/><rect y="15" width="20" height="2" rx="1"/>
+            </svg>
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Yep Kitchen" className="h-7 w-auto" />
+          <div className="w-8" />
         </div>
-      </header>
 
-      <div className="flex flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 py-6 gap-6">
+        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 max-w-6xl w-full mx-auto space-y-6">
 
-        {/* Left sidebar */}
-        <aside className="w-48 shrink-0 space-y-1">
-          {/* Stats */}
-          <div className="card p-3 mb-4 space-y-3">
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Ingredient stock</p>
-              <p className="text-lg font-bold text-gray-900 mt-0.5">{(totalRemainingG / 1000).toFixed(1)} kg</p>
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-gray-900">Raw Materials</h1>
+            <Link href="/admin/goods-in" className="btn-primary text-sm">Log Delivery</Link>
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="card p-4">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Ingredients</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">{items.filter(i => i.type === "ingredient").length}</p>
             </div>
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Stock value</p>
-              <p className="text-lg font-bold text-green-700 mt-0.5">
+            <div className="card p-4">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Ingredient stock</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">{(totalRemainingG / 1000).toFixed(1)} kg</p>
+            </div>
+            <div className="card p-4 border-green-200 bg-green-50">
+              <p className="text-xs text-green-700 font-medium uppercase tracking-wide">Stock value</p>
+              <p className="mt-1 text-2xl font-bold text-green-900">
                 {totalValue > 0 ? `£${totalValue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
               </p>
             </div>
-            {outOfStock > 0 && (
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Out of stock</p>
-                <p className="text-lg font-bold text-red-600 mt-0.5">{outOfStock}</p>
-              </div>
-            )}
+            <div className={`card p-4 ${outOfStock > 0 ? "border-red-200 bg-red-50" : ""}`}>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Out of stock</p>
+              <p className={`mt-1 text-2xl font-bold ${outOfStock > 0 ? "text-red-700" : "text-gray-900"}`}>{outOfStock}</p>
+            </div>
           </div>
 
-          {/* Tab nav */}
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
-                activeTab === tab.key
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-              <span className={`ml-auto text-xs font-semibold ${activeTab === tab.key ? "text-gray-300" : "text-gray-400"}`}>
-                {items.filter(i => (i.type ?? "ingredient") === tab.key).length}
-              </span>
-            </button>
-          ))}
-        </aside>
+          {/* Tab bar */}
+          <div className="flex gap-1 border-b border-gray-200">
+            {TABS.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+                  activeTab === tab.key
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <span>{tab.icon}</span>
+                {tab.label}
+                <span className={`text-xs rounded-full px-1.5 py-0.5 font-semibold ${
+                  activeTab === tab.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500"
+                }`}>
+                  {items.filter(i => (i.type ?? "ingredient") === tab.key).length}
+                </span>
+              </button>
+            ))}
+          </div>
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
@@ -342,6 +359,7 @@ export default function RawMaterialsPage() {
             </div>
           )}
         </div>
+        </main>
       </div>
 
       {/* Edit / create panel */}

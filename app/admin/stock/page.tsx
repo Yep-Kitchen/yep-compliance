@@ -210,14 +210,14 @@ export default function RawMaterialsPage() {
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
                   activeTab === tab.key
-                    ? "border-gray-900 text-gray-900"
+                    ? "border-brand text-gray-900"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
                 <span>{tab.icon}</span>
                 {tab.label}
                 <span className={`text-xs rounded-full px-1.5 py-0.5 font-semibold ${
-                  activeTab === tab.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500"
+                  activeTab === tab.key ? "bg-brand text-gray-900" : "bg-gray-100 text-gray-500"
                 }`}>
                   {items.filter(i => (i.type ?? "ingredient") === tab.key).length}
                 </span>

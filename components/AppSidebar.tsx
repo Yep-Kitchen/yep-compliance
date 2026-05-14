@@ -88,7 +88,7 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
         <div className="px-4 py-5 border-b border-gray-700/60">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Yep Kitchen" className="h-10 w-auto" />
-          <p className="text-sm font-semibold text-white mt-2 leading-tight">Compliance Portal</p>
+          <p className="text-sm font-semibold text-brand mt-2 leading-tight tracking-wide">Kernel</p>
         </div>
 
         {/* Nav */}
@@ -135,7 +135,7 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
                       onClick={onClose}
                       className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
                         pathname === item.href || pathname.startsWith(item.href + "/")
-                          ? "bg-white/15 text-white font-medium"
+                          ? "bg-brand/15 text-brand font-semibold"
                           : "text-gray-300 hover:bg-white/10 hover:text-white"
                       }`}
                     >

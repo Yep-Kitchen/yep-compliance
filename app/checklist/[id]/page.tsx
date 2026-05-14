@@ -477,7 +477,7 @@ export default function ChecklistPage() {
           )}
 
           <p className="text-center text-xs text-gray-400 pb-8">
-            Yep Kitchen · SALSA Compliance Portal
+            Kernel · Yep Kitchen
           </p>
         </div>
       </form>

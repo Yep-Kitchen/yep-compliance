@@ -69,7 +69,7 @@ export default function LoginPage() {
         <div className="text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Yep Kitchen" className="h-16 w-auto mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900">Compliance Portal</h1>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Kernel</h1>
           <p className="text-sm text-gray-500 mt-1">Sign in to continue</p>
         </div>
 

@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Yep Kitchen | Compliance Portal",
-  description: "SALSA food safety compliance portal",
+  title: "Kernel",
+  description: "Food production & compliance, built for makers.",
 };
 
 export const viewport: Viewport = {

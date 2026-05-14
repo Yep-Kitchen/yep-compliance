@@ -5,7 +5,6 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Ingredient, IngredientLot } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
-import AppSidebar from "@/components/AppSidebar";
 
 interface Supplier { id: string; name: string }
 type ItemType = "ingredient" | "packaging" | "supplies";
@@ -47,7 +46,6 @@ export default function RawMaterialsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const isNew = editing?.id === "";
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -155,23 +153,7 @@ export default function RawMaterialsPage() {
   const priceLabel = editUnit === "units" ? "Price per unit (£)" : "Price per kg (£)";
 
   return (
-    <div className="flex min-h-screen bg-brand-cream">
-      <AppSidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div className="flex-1 lg:ml-56 flex flex-col min-h-screen">
-
-        {/* Mobile top bar */}
-        <div className="lg:hidden sticky top-0 z-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-3">
-          <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded text-gray-600 hover:bg-gray-100">
-            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <rect y="3" width="20" height="2" rx="1"/><rect y="9" width="20" height="2" rx="1"/><rect y="15" width="20" height="2" rx="1"/>
-            </svg>
-          </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Yep Kitchen" className="h-7 w-auto" />
-          <div className="w-8" />
-        </div>
-
+    <>
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 max-w-6xl w-full mx-auto space-y-6">
 
           {/* Header */}
@@ -360,7 +342,6 @@ export default function RawMaterialsPage() {
           )}
         </div>
         </main>
-      </div>
 
       {/* Edit / create panel */}
       {editing && (
@@ -463,6 +444,6 @@ export default function RawMaterialsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

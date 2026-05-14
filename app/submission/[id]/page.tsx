@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Checklist, Submission, Answer, Question } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
+import PortalShell from "@/components/PortalShell";
 
 type FullSubmission = Submission & {
   checklist: Checklist;
@@ -105,7 +106,7 @@ export default function SubmissionPage() {
   const pendingCount = pendingIds.filter(pid => pid !== id).length;
 
   return (
-    <div className="min-h-screen bg-brand-cream">
+    <PortalShell>
       {/* Header */}
       <header className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
@@ -238,7 +239,7 @@ export default function SubmissionPage() {
           </div>
         )}
       </main>
-    </div>
+    </PortalShell>
   );
 }
 

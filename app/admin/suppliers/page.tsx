@@ -189,7 +189,7 @@ export default function SuppliersPage() {
   const panelOpen = isNew || !!editing;
 
   return (
-    <div className="min-h-screen bg-brand-cream">
+    <>
       <header className="border-b border-gray-200 bg-white shadow-sm sticky top-0 z-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -446,7 +446,7 @@ export default function SuppliersPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

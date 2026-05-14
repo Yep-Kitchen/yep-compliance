@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { Checklist, Submission, Answer, Question } from "@/lib/types";
 import { formatDateTime, frequencyLabel, frequencyBadgeColor } from "@/lib/utils";
+import PortalShell from "@/components/PortalShell";
 
 type SubmissionWithChecklist = Submission & { checklist: Checklist };
 
@@ -137,7 +138,7 @@ function SubmissionsPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-cream">
+    <PortalShell>
       <header className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -267,7 +268,7 @@ function SubmissionsPageInner() {
           </div>
         )}
       </main>
-    </div>
+    </PortalShell>
   );
 }
 

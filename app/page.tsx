@@ -162,21 +162,21 @@ export default function Dashboard() {
 
           {/* ── Alert strip ────────────────────────────────────────────── */}
           {pendingSignOff.length > 0 && (
-            <Link href="/dashboard?filter=pending" className="flex items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 hover:bg-amber-100 transition">
-              <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
-              <p className="text-sm font-medium text-amber-900">
+            <Link href="/dashboard?filter=pending" className="flex items-center gap-3 rounded-xl border border-brand/50 bg-brand-light px-4 py-3 hover:bg-brand transition">
+              <span className="h-2 w-2 rounded-full bg-brand-dark shrink-0" />
+              <p className="text-sm font-medium text-brown">
                 {pendingSignOff.length} submission{pendingSignOff.length !== 1 ? "s" : ""} awaiting sign-off
               </p>
-              <span className="ml-auto text-xs text-amber-700">Review →</span>
+              <span className="ml-auto text-xs text-brown/70">Review →</span>
             </Link>
           )}
 
           {/* ── Stats ──────────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <StatCard label="Today's submissions" value={todayCount} loading={loading} href="/dashboard" />
-            <StatCard label="Awaiting sign-off" value={pendingSignOff.length} loading={loading} href="/dashboard?filter=pending" accent={pendingSignOff.length > 0 ? "amber" : undefined} />
+            <StatCard label="Awaiting sign-off" value={pendingSignOff.length} loading={loading} href="/dashboard?filter=pending" warn={pendingSignOff.length > 0} />
             <StatCard label="Active checklists" value={checklists.length} loading={loading} />
-            <StatCard label="In-progress batches" value={openDrafts.length} loading={loading} accent={openDrafts.length > 0 ? "amber" : undefined} />
+            <StatCard label="In-progress batches" value={openDrafts.length} loading={loading} warn={openDrafts.length > 0} />
           </div>
 
           {/* ── In-progress batches ────────────────────────────────────── */}
@@ -189,14 +189,14 @@ export default function Dashboard() {
                   const ago = mins < 60 ? `${mins}m ago` : `${Math.round(mins / 60)}h ago`;
                   return (
                     <Link key={d.id} href={`/checklist/${d.checklist_id}`}
-                      className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 hover:border-amber-400 hover:shadow-sm transition"
+                      className="flex items-center gap-3 rounded-xl border border-brand/50 bg-brand-light px-4 py-3 hover:bg-brand hover:shadow-sm transition"
                     >
-                      <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+                      <span className="h-2 w-2 rounded-full bg-brand-dark shrink-0 animate-pulse" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{(d.checklist as Checklist | undefined)?.name ?? "Batch record"}</p>
-                        <p className="text-xs text-gray-500">{d.started_by} · {ago}</p>
+                        <p className="text-sm font-medium text-brown truncate">{(d.checklist as Checklist | undefined)?.name ?? "Batch record"}</p>
+                        <p className="text-xs text-brown/60">{d.started_by} · {ago}</p>
                       </div>
-                      <span className="text-xs text-amber-700 shrink-0">Continue →</span>
+                      <span className="text-xs text-brown/70 shrink-0">Continue →</span>
                     </Link>
                   );
                 })}
@@ -284,7 +284,7 @@ export default function Dashboard() {
                               <p className="text-xs text-gray-400">{s.submitted_by} · {timeStr}</p>
                             </div>
                             {!s.signed_off_at && (
-                              <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Pending</span>
+                              <span className="shrink-0 rounded-full bg-brand px-2 py-0.5 text-[10px] font-semibold text-brown">Pending</span>
                             )}
                           </Link>
                         );
@@ -360,14 +360,12 @@ function SignOutButton() {
   );
 }
 
-function StatCard({ label, value, loading, accent, href }: {
-  label: string; value: number; loading: boolean; accent?: "amber"; href?: string;
+function StatCard({ label, value, loading, warn, href }: {
+  label: string; value: number; loading: boolean; warn?: boolean; href?: string;
 }) {
-  const accentCls = accent === "amber"
-    ? "border-amber-300 bg-amber-50"
-    : "border-gray-200 bg-white";
-  const valCls = accent === "amber" ? "text-amber-900" : "text-gray-900";
-  const lblCls = accent === "amber" ? "text-amber-700" : "text-gray-500";
+  const cardCls = warn ? "border-brand/50 bg-brand-light" : "border-gray-200 bg-white";
+  const valCls  = warn ? "text-brown" : "text-gray-900";
+  const lblCls  = warn ? "text-brown/70" : "text-gray-500";
   const inner = (
     <>
       <p className={`text-xs font-semibold uppercase tracking-wide ${lblCls}`}>{label}</p>
@@ -377,7 +375,7 @@ function StatCard({ label, value, loading, accent, href }: {
       }
     </>
   );
-  const cls = `rounded-xl border-2 p-4 shadow-sm transition ${accentCls} ${href ? "hover:shadow-md cursor-pointer" : ""}`;
+  const cls = `rounded-xl border-2 p-4 shadow-sm transition ${cardCls} ${href ? "hover:shadow-md cursor-pointer" : ""}`;
   if (href) return <Link href={href} className={cls}>{inner}</Link>;
   return <div className={cls}>{inner}</div>;
 }

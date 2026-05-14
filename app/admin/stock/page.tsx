@@ -190,15 +190,15 @@ export default function RawMaterialsPage() {
               <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Ingredient stock</p>
               <p className="mt-1 text-2xl font-bold text-gray-900">{(totalRemainingG / 1000).toFixed(1)} kg</p>
             </div>
-            <div className="card p-4 border-brand/40 bg-brand-light">
-              <p className="text-xs text-brown font-medium uppercase tracking-wide">Stock value</p>
-              <p className="mt-1 text-2xl font-bold text-brown">
+            <div className="card p-4">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Stock value</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">
                 {totalValue > 0 ? `£${totalValue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
               </p>
             </div>
-            <div className={`card p-4 ${outOfStock > 0 ? "border-red-200 bg-red-50" : ""}`}>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Out of stock</p>
-              <p className={`mt-1 text-2xl font-bold ${outOfStock > 0 ? "text-red-700" : "text-gray-900"}`}>{outOfStock}</p>
+            <div className={`card p-4 ${outOfStock > 0 ? "border-brand/50 bg-brand-light" : ""}`}>
+              <p className={`text-xs font-medium uppercase tracking-wide ${outOfStock > 0 ? "text-brown/70" : "text-gray-500"}`}>Out of stock</p>
+              <p className={`mt-1 text-2xl font-bold ${outOfStock > 0 ? "text-brown" : "text-gray-900"}`}>{outOfStock}</p>
             </div>
           </div>
 

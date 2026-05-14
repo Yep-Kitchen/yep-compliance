@@ -115,12 +115,12 @@ export default function EditChecklistPage() {
 
   async function deleteQuestion(qId: string) {
     if (!confirm("Delete this question?")) return;
-    await supabase.from("questions").delete().eq("id", qId);
+    const { error } = await supabase.from("questions").delete().eq("id", qId);
+    if (error) { alert("Failed to delete: " + error.message); return; }
     const remaining = questions.filter(q => q.id !== qId);
-    // Re-index
-    for (let i = 0; i < remaining.length; i++) {
-      await supabase.from("questions").update({ order_index: i }).eq("id", remaining[i].id);
-    }
+    await Promise.all(
+      remaining.map((q, i) => supabase.from("questions").update({ order_index: i }).eq("id", q.id))
+    );
     setQuestions(remaining.map((q, i) => ({ ...q, order_index: i })));
   }
 

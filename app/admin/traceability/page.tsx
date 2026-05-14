@@ -135,21 +135,40 @@ export default function TraceabilityPage() {
     setResult({ searchType: "lot", query: julianCode, lots: lots as LotInfo[], batches, dispatches });
   }
 
-  async function searchByBatch(submissionId: string) {
-    // Find submission by partial ID or look up dispatches by batch
+  async function searchByBatch(julianCode: string) {
+    // Find submissions where the batch code answer matches this Julian code
+    const { data: matchingAnswers } = await supabase
+      .from("answers")
+      .select("submission_id, value, question:questions(label)")
+      .ilike("value", `%${julianCode}%`);
+
+    const submissionIds = [
+      ...new Set(
+        (matchingAnswers ?? [])
+          .filter((a) => {
+            const label = (a.question as unknown as { label: string })?.label?.toLowerCase() ?? "";
+            return label.includes("batch") || label.includes("julian");
+          })
+          .map((a) => a.submission_id)
+      ),
+    ];
+
+    if (submissionIds.length === 0) {
+      setError(`No batch records found for Julian code "${julianCode}".`);
+      return;
+    }
+
     const { data: subs } = await supabase
       .from("submissions")
       .select("id, submitted_by, submitted_at, checklist:checklists(name), answers(value, question:questions(type, label))")
-      .ilike("id", `${submissionId}%`)
-      .limit(5);
+      .in("id", submissionIds);
 
     if (!subs || subs.length === 0) {
-      setError(`No batch records found for ID "${submissionId}".`);
+      setError(`No batch records found for Julian code "${julianCode}".`);
       return;
     }
 
     const batches = subs as unknown as BatchInfo[];
-    const submissionIds = batches.map((b) => b.id);
 
     // Find which lots were used
     const lotIds = new Set<string>();
@@ -184,7 +203,7 @@ export default function TraceabilityPage() {
       .select("*")
       .in("batch_submission_id", submissionIds);
 
-    setResult({ searchType: "batch", query: submissionId, lots, batches, dispatches: (disps ?? []) as DispatchInfo[] });
+    setResult({ searchType: "batch", query: julianCode, lots, batches, dispatches: (disps ?? []) as DispatchInfo[] });
   }
 
   return (
@@ -203,7 +222,7 @@ export default function TraceabilityPage() {
         {/* Search */}
         <div className="card p-6">
           <h2 className="text-sm font-semibold text-gray-900 mb-1">Full chain traceability</h2>
-          <p className="text-xs text-gray-500 mb-4">Search by Julian code (raw material) or batch record ID. Returns the full ingredient → production → dispatch chain.</p>
+          <p className="text-xs text-gray-500 mb-4">Search by Julian code — either a raw material lot or a finished batch. Returns the full ingredient → production → dispatch chain.</p>
           <form onSubmit={handleSearch} className="space-y-3">
             <div className="flex gap-2">
               <button
@@ -218,7 +237,7 @@ export default function TraceabilityPage() {
                 onClick={() => setSearchType("batch")}
                 className={`px-3 py-1.5 rounded text-xs font-medium transition ${searchType === "batch" ? "bg-brand text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
-                Batch record ID
+                Batch Julian code
               </button>
             </div>
             <div className="flex gap-2">
@@ -226,7 +245,7 @@ export default function TraceabilityPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={searchType === "lot" ? "e.g. 26124" : "Paste batch record ID…"}
+                placeholder={searchType === "lot" ? "e.g. 26124 (raw material)" : "e.g. 26134 (batch Julian code)"}
                 className="input flex-1"
               />
               <button type="submit" disabled={loading} className="btn-primary shrink-0">
@@ -288,7 +307,6 @@ export default function TraceabilityPage() {
                         </div>
                         <Link href={`/submission/${b.id}`} className="btn-ghost text-xs shrink-0">View →</Link>
                       </div>
-                      <p className="text-xs text-gray-400 font-mono break-all">ID: {b.id}</p>
                     </div>
                   ))}
                 </div>

@@ -207,7 +207,7 @@ export default function TraceabilityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-cream">
       <header className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -380,9 +380,9 @@ function Section({ title, count, color, children }: {
   title: string; count: number; color: "blue" | "amber" | "green"; children: React.ReactNode;
 }) {
   const colors = {
-    blue: "bg-blue-50 border-blue-200 text-blue-800",
+    blue: "bg-brand-cream border-brand/30 text-brown",
     amber: "bg-amber-50 border-amber-200 text-amber-800",
-    green: "bg-green-50 border-green-200 text-green-800",
+    green: "bg-brand-light border-brand/40 text-brown",
   };
   return (
     <div className="card overflow-hidden">

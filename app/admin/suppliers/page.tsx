@@ -54,13 +54,13 @@ const TYPE_LABELS: Record<SupplierType, string> = {
 };
 
 const RISK_COLORS: Record<SupplierRisk, string> = {
-  low: "bg-green-100 text-green-800",
+  low: "bg-brand/30 text-brown",
   medium: "bg-amber-100 text-amber-800",
   high: "bg-red-100 text-red-800",
 };
 
 const STATUS_COLORS: Record<SupplierStatus, string> = {
-  approved: "bg-green-100 text-green-800",
+  approved: "bg-brand/30 text-brown",
   under_review: "bg-amber-100 text-amber-800",
   unapproved: "bg-red-100 text-red-800",
 };
@@ -189,7 +189,7 @@ export default function SuppliersPage() {
   const panelOpen = isNew || !!editing;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-cream">
       <header className="border-b border-gray-200 bg-white shadow-sm sticky top-0 z-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -268,7 +268,7 @@ export default function SuppliersPage() {
                       <td className="px-3 py-3"><DateCell dateStr={s.cert_expiry} /></td>
                       <td className="px-3 py-3">
                         {s.saq_completed
-                          ? <span className="text-green-700 font-medium">Yes{s.saq_date ? ` · ${new Date(s.saq_date).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}` : ""}</span>
+                          ? <span className="text-brown font-medium">Yes{s.saq_date ? ` · ${new Date(s.saq_date).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}` : ""}</span>
                           : <span className="text-red-600 font-medium">No</span>
                         }
                       </td>

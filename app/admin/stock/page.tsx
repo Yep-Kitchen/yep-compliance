@@ -155,7 +155,7 @@ export default function RawMaterialsPage() {
   const priceLabel = editUnit === "units" ? "Price per unit (£)" : "Price per kg (£)";
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-brand-cream">
       <AppSidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 lg:ml-56 flex flex-col min-h-screen">
@@ -190,9 +190,9 @@ export default function RawMaterialsPage() {
               <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Ingredient stock</p>
               <p className="mt-1 text-2xl font-bold text-gray-900">{(totalRemainingG / 1000).toFixed(1)} kg</p>
             </div>
-            <div className="card p-4 border-green-200 bg-green-50">
-              <p className="text-xs text-green-700 font-medium uppercase tracking-wide">Stock value</p>
-              <p className="mt-1 text-2xl font-bold text-green-900">
+            <div className="card p-4 border-brand/40 bg-brand-light">
+              <p className="text-xs text-brown font-medium uppercase tracking-wide">Stock value</p>
+              <p className="mt-1 text-2xl font-bold text-brown">
                 {totalValue > 0 ? `£${totalValue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
               </p>
             </div>
@@ -298,7 +298,7 @@ export default function RawMaterialsPage() {
                                     {fmtQty(totalRemaining, unit)}
                                   </p>
                                   {value != null && (
-                                    <p className="text-xs text-green-700 font-medium">
+                                    <p className="text-xs text-brown font-medium">
                                       £{value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                   )}
@@ -409,7 +409,7 @@ export default function RawMaterialsPage() {
                 {editPrice && !isNew && editing.lots.length > 0 && (
                   <p className="mt-1.5 text-xs text-gray-500">
                     Stock value:{" "}
-                    <span className="font-semibold text-green-700">
+                    <span className="font-semibold text-brown">
                       £{(() => {
                         const qty = editing.lots.reduce((s, l) => s + l.quantity_remaining_g, 0);
                         return ((editUnit === "units" ? qty : qty / 1000) * parseFloat(editPrice))

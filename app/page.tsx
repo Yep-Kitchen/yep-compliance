@@ -50,23 +50,20 @@ const NAV = [
 ];
 
 const FREQ_GROUPS = [
-  { key: "daily",      label: "Daily",                      freqs: ["per_shift_am", "per_shift_pm", "per_shift_eod"],  color: "sky"    },
-  { key: "weekly",     label: "Weekly",                     freqs: ["weekly"],                                          color: "indigo" },
-  { key: "adhoc",      label: "Adhoc",                      freqs: ["adhoc", "monthly"],                                color: "emerald"},
-  { key: "production", label: "Production & Traceability",  freqs: ["per_batch", "per_delivery", "per_dispatch"],       color: "violet" },
-  { key: "people",     label: "People",                     freqs: ["per_new_start"],                                   color: "orange" },
-  { key: "incidents",  label: "Incidents",                  freqs: ["per_complaint", "per_corrective_action"],          color: "rose"   },
+  { key: "daily",      label: "Daily",                      freqs: ["per_shift_am", "per_shift_pm", "per_shift_eod"],  color: "a" },
+  { key: "weekly",     label: "Weekly",                     freqs: ["weekly"],                                          color: "b" },
+  { key: "adhoc",      label: "Adhoc",                      freqs: ["adhoc", "monthly"],                                color: "a" },
+  { key: "production", label: "Production & Traceability",  freqs: ["per_batch", "per_delivery", "per_dispatch"],       color: "b" },
+  { key: "people",     label: "People",                     freqs: ["per_new_start"],                                   color: "a" },
+  { key: "incidents",  label: "Incidents",                  freqs: ["per_complaint", "per_corrective_action"],          color: "red" },
 ] as const;
 
 type GroupColor = typeof FREQ_GROUPS[number]["color"];
 
 const GROUP_STYLES: Record<GroupColor, { header: string; dot: string; badge: string }> = {
-  sky:    { header: "border-sky-200 bg-sky-50 text-sky-800",           dot: "bg-sky-500",     badge: "bg-sky-100 text-sky-800"      },
-  indigo: { header: "border-indigo-200 bg-indigo-50 text-indigo-800",  dot: "bg-indigo-500",  badge: "bg-indigo-100 text-indigo-800"},
-  emerald:{ header: "border-emerald-200 bg-emerald-50 text-emerald-800", dot: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-800" },
-  violet: { header: "border-violet-200 bg-violet-50 text-violet-800",  dot: "bg-violet-500",  badge: "bg-violet-100 text-violet-800"},
-  orange: { header: "border-orange-200 bg-orange-50 text-orange-800",  dot: "bg-orange-500",  badge: "bg-orange-100 text-orange-800"},
-  rose:   { header: "border-rose-200 bg-rose-50 text-rose-800",        dot: "bg-rose-500",    badge: "bg-rose-100 text-rose-800"   },
+  a:   { header: "border-brand/50 bg-brand-light text-brown",       dot: "bg-brand",      badge: "bg-brand-light text-brown"  },
+  b:   { header: "border-brand-dark/40 bg-brand-cream text-brown",  dot: "bg-brand-dark", badge: "bg-brand-cream text-brown"  },
+  red: { header: "border-red-200 bg-red-50 text-red-800",           dot: "bg-red-500",    badge: "bg-red-100 text-red-800"    },
 };
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -138,7 +135,7 @@ export default function Dashboard() {
   const uncategorised = checklists.filter(cl => !freqSet.has(cl.frequency));
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-brand-cream">
 
       {/* ── Sidebar ──────────────────────────────────────────────────────── */}
       <AppSidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -235,7 +232,7 @@ export default function Dashboard() {
                 <ChecklistGroup
                   label="Other"
                   items={uncategorised}
-                  styles={GROUP_STYLES.emerald}
+                  styles={GROUP_STYLES.a}
                   loading={loading}
                 />
               )}

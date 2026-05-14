@@ -296,7 +296,7 @@ export default function ChecklistPage() {
       : `${Math.round(timeAgo / 60)} hr${Math.round(timeAgo / 60) !== 1 ? "s" : ""} ago`;
 
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-brand-cream flex flex-col">
         <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
           <div className="px-4 py-3 flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -343,8 +343,8 @@ export default function ChecklistPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
         <div className="card max-w-sm w-full p-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 overflow-hidden">
-            <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand/20 overflow-hidden">
+            <svg className="h-8 w-8 text-brown" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -378,7 +378,7 @@ export default function ChecklistPage() {
   const allComplete = progress ? progress.filled === progress.total : true;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-cream">
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="px-4 py-3">
@@ -398,7 +398,7 @@ export default function ChecklistPage() {
                   <span className="text-xs text-gray-400">Saving…</span>
                 )}
                 {draftStatus === "saved" && (
-                  <span className="text-xs text-green-600">Saved ✓</span>
+                  <span className="text-xs text-brown/60">Saved ✓</span>
                 )}
               </div>
             )}
@@ -427,7 +427,7 @@ export default function ChecklistPage() {
       <form onSubmit={handleSubmit} noValidate className="pb-safe">
         <div className="mx-auto max-w-xl px-4 py-4 space-y-4">
           {checklist.description && (
-            <p className="text-sm text-gray-600 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+            <p className="text-sm text-gray-600 bg-brand-cream border border-brand/30 rounded-xl px-4 py-3">
               {checklist.description}
             </p>
           )}

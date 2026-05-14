@@ -105,7 +105,7 @@ export default function SubmissionPage() {
   const pendingCount = pendingIds.filter(pid => pid !== id).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-cream">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
@@ -118,7 +118,7 @@ export default function SubmissionPage() {
           </div>
           <div className="flex items-center gap-2">
             {isSigned ? (
-              <span className="badge bg-green-100 text-green-700 px-3 py-1">Signed off ✓</span>
+              <span className="badge bg-brand/30 text-brown px-3 py-1">Signed off ✓</span>
             ) : (
               <span className="badge bg-amber-100 text-amber-700 px-3 py-1">Pending review</span>
             )}
@@ -151,7 +151,7 @@ export default function SubmissionPage() {
               <>
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Signed off by</p>
-                  <p className="mt-0.5 font-medium text-green-700">{submission.signed_off_by}</p>
+                  <p className="mt-0.5 font-medium text-brown">{submission.signed_off_by}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Signed off at</p>
@@ -273,7 +273,7 @@ function AnswerRow({ answer }: { answer: Answer }) {
       const items: string[] = JSON.parse(val);
       display = (
         <div className="flex flex-wrap gap-1 mt-1">
-          {items.map((i) => <span key={i} className="badge bg-blue-100 text-blue-700">{i}</span>)}
+          {items.map((i) => <span key={i} className="badge bg-brand-cream text-brown">{i}</span>)}
         </div>
       );
     } catch { display = <p className="text-sm text-gray-900">{val}</p>; }

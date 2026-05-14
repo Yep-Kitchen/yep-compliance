@@ -7,7 +7,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-brand-cream text-gray-900 antialiased;
   }
 }
 

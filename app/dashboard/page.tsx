@@ -137,7 +137,7 @@ function SubmissionsPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-cream">
       <header className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -249,7 +249,7 @@ function SubmissionsPageInner() {
                       <td className="px-4 py-3 text-gray-600">{formatDateTime(s.submitted_at)}</td>
                       <td className="px-4 py-3">
                         {s.signed_off_at ? (
-                          <span className="badge bg-green-100 text-green-700">Signed off</span>
+                          <span className="badge bg-brand/30 text-brown">Signed off</span>
                         ) : (
                           <span className="badge bg-amber-100 text-amber-700">Pending</span>
                         )}

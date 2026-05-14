@@ -13,13 +13,14 @@ const config: Config = {
       },
       colors: {
         brand: {
-          DEFAULT: "#FBEC5D",
-          dark: "#EDD930",
-          light: "#FDF07A",
+          DEFAULT: "#F5C65A",   // golden – buttons, active states
+          dark:    "#C9A24A",   // darker gold – hover
+          light:   "#FFE08A",   // light yellow – sidebar
+          cream:   "#FFF6D5",   // very light cream – page bg
         },
         brown: {
-          DEFAULT: "#3C3425",
-          light: "#5a4e38",
+          DEFAULT: "#6B5B3E",   // dark warm brown – text
+          light:   "#8a7355",
         },
       },
     },

@@ -129,7 +129,7 @@ export default function GoodsOutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-cream">
       <header className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -306,7 +306,7 @@ export default function GoodsOutPage() {
               <button type="submit" disabled={saving} className="btn-primary">
                 {saving ? "Saving…" : `Log dispatch (${rows.length} product${rows.length !== 1 ? "s" : ""})`}
               </button>
-              {saved && <span className="text-sm text-green-600 font-medium">Saved ✓</span>}
+              {saved && <span className="text-sm text-brown/70 font-medium">Saved ✓</span>}
             </div>
           </form>
         </div>

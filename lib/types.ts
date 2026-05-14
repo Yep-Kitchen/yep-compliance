@@ -1,6 +1,7 @@
 export type QuestionType =
   | "checkbox"
   | "number"
+  | "multi_number"
   | "text"
   | "date"
   | "datetime"

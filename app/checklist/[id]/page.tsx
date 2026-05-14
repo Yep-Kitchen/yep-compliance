@@ -20,6 +20,12 @@ interface BatchDraft {
 function isFieldFilled(q: Question, val: string): boolean {
   if (!val) return false;
   if (q.type === "checkbox") return val === "true";
+  if (q.type === "multi_number") {
+    try {
+      const arr = JSON.parse(val) as string[];
+      return arr.every(v => v !== "" && !isNaN(Number(v)));
+    } catch { return false; }
+  }
   if (q.type === "ingredient_table") {
     try {
       const rows = JSON.parse(val) as Array<{ lots: Array<{ lot_id?: string; julian_code: string; weight_g: string }> }>;
@@ -192,6 +198,11 @@ export default function ChecklistPage() {
             errs[q.id] = "Please complete at least one packing run";
           }
         } catch { errs[q.id] = "Please complete the packing log"; }
+      } else if (q.type === "multi_number") {
+        try {
+          const arr = JSON.parse(val) as string[];
+          if (!arr.every(v => v !== "" && !isNaN(Number(v)))) errs[q.id] = "Please fill in all values";
+        } catch { errs[q.id] = "Please fill in all values"; }
       } else if (!val || val === "false" || val === "[]") {
         errs[q.id] = "This field is required";
       }

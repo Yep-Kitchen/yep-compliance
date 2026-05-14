@@ -234,6 +234,61 @@ export default function QuestionField({ question, value, onChange, error, ingred
     );
   }
 
+  if (question.type === "multi_number") {
+    const count = parseInt(question.options?.[0] ?? "3");
+    let vals: string[];
+    try {
+      vals = value ? JSON.parse(value) : Array(count).fill("");
+    } catch { vals = Array(count).fill(""); }
+    if (vals.length !== count) {
+      vals = Array.from({ length: count }, (_, i) => vals[i] ?? "");
+    }
+
+    const updateVal = (idx: number, v: string) => {
+      const next = [...vals];
+      next[idx] = v;
+      onChange(JSON.stringify(next));
+    };
+
+    const filled = vals.filter(v => v !== "" && !isNaN(Number(v)));
+    const nums = filled.map(Number);
+    const min = nums.length ? Math.min(...nums) : null;
+
+    return (
+      <div className="space-y-1">
+        <label className="label">
+          {question.label}
+          {question.required && <span className="ml-1 text-brand">*</span>}
+        </label>
+        {question.hint && <p className="text-xs text-gray-500 -mt-0.5 mb-2">{question.hint}</p>}
+        <div className={`grid gap-2 ${error ? "rounded-xl border border-red-300 p-2" : ""}`}
+          style={{ gridTemplateColumns: `repeat(${count}, 1fr)` }}>
+          {vals.map((v, i) => (
+            <div key={i} className="space-y-0.5">
+              <p className="text-xs text-gray-400 text-center">{i + 1}</p>
+              <input
+                type="number"
+                value={v}
+                onChange={e => updateVal(i, e.target.value)}
+                className="input text-sm py-1.5 text-center w-full"
+                placeholder="—"
+                inputMode="decimal"
+                step="0.1"
+              />
+            </div>
+          ))}
+        </div>
+        {min !== null && (
+          <p className="text-xs text-gray-500 pt-0.5">
+            Min: <span className="font-semibold text-gray-700">{min}</span>
+            {" · "}Avg: <span className="font-semibold text-gray-700">{(nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(1)}</span>
+          </p>
+        )}
+        {error && <p className="text-xs text-red-500">{error}</p>}
+      </div>
+    );
+  }
+
   if (question.type === "ingredient_table") {
     type LotUse = { lot_id: string; julian_code: string; weight_g: string };
     type IngRow = { name: string; lots: LotUse[] };

@@ -85,7 +85,9 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
         lg:translate-x-0
       `}>
         {/* Wordmark */}
-        <div className="px-5 py-5 border-b border-brown/15">
+        <div className="px-4 py-4 border-b border-brown/15 flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/kernel.svg" alt="" className="h-9 w-auto shrink-0 drop-shadow-sm" />
           <p className="font-serif text-4xl text-brown leading-none tracking-tight">Kernel</p>
         </div>
 

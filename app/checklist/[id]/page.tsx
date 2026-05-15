@@ -300,7 +300,7 @@ export default function ChecklistPage() {
         <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
           <div className="px-4 py-3 flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Yep Kitchen" className="h-8 w-auto" />
+            <img src="/kernel.svg" alt="Kernel" className="h-8 w-auto" />
             <div>
               <h1 className="text-sm font-semibold text-gray-900 leading-tight">{checklist.name}</h1>
               <p className="text-xs text-gray-500">Production Record</p>
@@ -467,7 +467,7 @@ export default function ChecklistPage() {
           )}
 
           <p className="text-center text-xs text-gray-400 pb-8">
-            Kernel · Yep Kitchen
+            Kernel
           </p>
         </div>
       </form>

@@ -65,12 +65,12 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="min-h-screen bg-brand-cream flex items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
+      <div className="w-full max-w-sm space-y-8">
+        <div className="flex flex-col items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Yep Kitchen" className="h-16 w-auto mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Kernel</h1>
-          <p className="text-sm text-gray-500 mt-1">Sign in to continue</p>
+          <img src="/kernel.svg" alt="Kernel" className="w-40 h-auto drop-shadow-xl mb-6" />
+          <p className="font-serif text-6xl text-brown leading-none tracking-tight">Kernel</p>
+          <p className="text-sm text-brown/60 mt-2">Sign in to continue</p>
         </div>
 
         <div className="card p-6">

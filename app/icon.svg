@@ -1,12 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Dark background matching --dark: #1C1A10 -->
-  <rect width="32" height="32" rx="7" fill="#1C1A10"/>
-  <!-- Main kernel body: warm creamy amber #D4A840 -->
-  <path d="M16 5 C12.2 5 9.5 9 9.5 15 C9.5 21.5 12.2 27 16 27 C19.8 27 22.5 21.5 22.5 15 C22.5 9 19.8 5 16 5Z" fill="#D4A840"/>
-  <!-- Highlight layer: lighter golden #F5D070 at ~45% opacity -->
-  <path d="M16 7 C13.5 7 11.8 10.5 11.8 15 C11.8 20 13.5 25 16 25 C18.5 25 20.2 20 20.2 15 C20.2 10.5 18.5 7 16 7Z" fill="#F5D070" opacity="0.42"/>
-  <!-- Dark crease groove down centre -->
-  <line x1="16" y1="6.5" x2="16" y2="25.5" stroke="#8A6018" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
-  <!-- Germ spot at base: pale cream #F0D898 -->
-  <ellipse cx="16" cy="23" rx="2.8" ry="1.4" fill="#F0D898" opacity="0.6"/>
+  <defs>
+    <radialGradient id="b" cx="38%" cy="30%" r="70%">
+      <stop offset="0%"   stop-color="#FFE066"/>
+      <stop offset="35%"  stop-color="#F5C030"/>
+      <stop offset="70%"  stop-color="#D4920A"/>
+      <stop offset="100%" stop-color="#9A5E08"/>
+    </radialGradient>
+    <radialGradient id="g" cx="33%" cy="22%" r="40%">
+      <stop offset="0%"   stop-color="#fff" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#F7F2E8"/>
+  <!-- Kernel body -->
+  <path d="M16 3 C12 3 9 7 8.5 12 C7.8 18 8.5 25 11 28.5 C12.5 30.5 14.2 31.5 16 31.5 C17.8 31.5 19.5 30.5 21 28.5 C23.5 25 24.2 18 23.5 12 C23 7 20 3 16 3Z"
+    fill="url(#b)"/>
+  <!-- Crease -->
+  <line x1="16" y1="3.5" x2="16" y2="31" stroke="#7A4208" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+  <!-- Gloss -->
+  <path d="M16 3 C12 3 9 7 8.5 12 C7.8 18 8.5 25 11 28.5 C12.5 30.5 14.2 31.5 16 31.5 C17.8 31.5 19.5 30.5 21 28.5 C23.5 25 24.2 18 23.5 12 C23 7 20 3 16 3Z"
+    fill="url(#g)"/>
 </svg>

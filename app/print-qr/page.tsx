@@ -184,7 +184,7 @@ function SinglePrintView({
       >
         {/* Top: logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Yep Kitchen" style={{ height: "72px", objectFit: "contain" }} />
+        <img src="/kernel.svg" alt="Kernel" style={{ height: "72px", objectFit: "contain" }} />
 
         {/* Middle: title + frequency */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "6mm" }}>

@@ -11,7 +11,7 @@ type ItemType = "ingredient" | "packaging" | "supplies";
 type IngredientWithLots = Ingredient & { lots: IngredientLot[]; supplier?: Supplier };
 
 const TABS: { key: ItemType; label: string; icon: string }[] = [
-  { key: "ingredient", label: "Ingredients",  icon: "🌶️" },
+  { key: "ingredient", label: "Ingredients",  icon: "🌽" },
   { key: "packaging",  label: "Packaging",    icon: "📦" },
   { key: "supplies",   label: "Supplies",     icon: "🧴" },
 ];

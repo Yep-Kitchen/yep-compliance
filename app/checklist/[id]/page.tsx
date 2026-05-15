@@ -354,19 +354,9 @@ export default function ChecklistPage() {
           <p className="mt-2 text-sm text-gray-600">
             {checklist.name} has been recorded.
           </p>
-          <button
-            onClick={() => {
-              setSubmitted(false);
-              setAnswers({});
-              setErrors({});
-              setDraftId(null);
-              draftIdRef.current = null;
-              setDraftStatus("idle");
-            }}
-            className="btn-primary mt-6 w-full"
-          >
-            {isProduction ? "Start another batch" : "Submit another"}
-          </button>
+          <a href="/" className="btn-primary mt-6 w-full">
+            Return to dashboard
+          </a>
         </div>
       </div>
     );

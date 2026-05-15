@@ -188,16 +188,27 @@ export default function Dashboard() {
                   const mins = Math.round((Date.now() - new Date(d.last_saved_at).getTime()) / 60000);
                   const ago = mins < 60 ? `${mins}m ago` : `${Math.round(mins / 60)}h ago`;
                   return (
-                    <Link key={d.id} href={`/checklist/${d.checklist_id}`}
-                      className="flex items-center gap-3 rounded-xl border border-brand/50 bg-brand-light px-4 py-3 hover:bg-brand hover:shadow-sm transition"
-                    >
+                    <div key={d.id} className="flex items-center gap-3 rounded-xl border border-brand/50 bg-brand-light px-4 py-3 transition">
                       <span className="h-2 w-2 rounded-full bg-brand-dark shrink-0 animate-pulse" />
-                      <div className="flex-1 min-w-0">
+                      <Link href={`/checklist/${d.checklist_id}`} className="flex-1 min-w-0 hover:opacity-80 transition">
                         <p className="text-sm font-medium text-brown truncate">{(d.checklist as Checklist | undefined)?.name ?? "Batch record"}</p>
                         <p className="text-xs text-brown/60">{d.started_by} · {ago}</p>
-                      </div>
-                      <span className="text-xs text-brown/70 shrink-0">Continue →</span>
-                    </Link>
+                      </Link>
+                      <Link href={`/checklist/${d.checklist_id}`} className="text-xs text-brown/70 shrink-0 hover:text-brown transition">Continue →</Link>
+                      <button
+                        onClick={async () => {
+                          if (!confirm("Delete this in-progress draft? This can't be undone.")) return;
+                          await supabase.from("batch_drafts").delete().eq("id", d.id);
+                          load();
+                        }}
+                        className="shrink-0 ml-1 rounded p-1 text-brown/40 hover:text-red-600 hover:bg-red-50 transition"
+                        title="Delete draft"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/>
+                        </svg>
+                      </button>
+                    </div>
                   );
                 })}
               </div>

@@ -63,6 +63,8 @@ function findDensity(densityByName: Record<string, number>, name: string): numbe
 
 export default function QuestionField({ question, value, onChange, error, ingredientLots, densityByName }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
+  // Tracks raw litres text per lot input so users can type freely without the field snapping
+  const [litresDisplay, setLitresDisplay] = useState<Record<string, string>>({});
 
   const base = (
     <div className="space-y-1">
@@ -433,10 +435,23 @@ export default function QuestionField({ question, value, onChange, error, ingred
                     )}
                     {density ? (
                       <>
-                        <LitresInput
-                          weightG={lotUse.weight_g}
-                          density={density}
-                          onChange={(g) => updateLot(ingIdx, lotIdx, "weight_g", g)}
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={litresDisplay[`${ingIdx}-${lotIdx}`] ?? (lotUse.weight_g ? (Number(lotUse.weight_g) / density).toFixed(2) : "")}
+                          onChange={(e) => setLitresDisplay(prev => ({ ...prev, [`${ingIdx}-${lotIdx}`]: e.target.value }))}
+                          onBlur={(e) => {
+                            const litres = parseFloat(e.target.value);
+                            if (!isNaN(litres) && litres > 0) {
+                              updateLot(ingIdx, lotIdx, "weight_g", String(Math.round(litres * density)));
+                              setLitresDisplay(prev => ({ ...prev, [`${ingIdx}-${lotIdx}`]: litres.toFixed(2) }));
+                            } else {
+                              updateLot(ingIdx, lotIdx, "weight_g", "");
+                              setLitresDisplay(prev => ({ ...prev, [`${ingIdx}-${lotIdx}`]: "" }));
+                            }
+                          }}
+                          className="input w-24 shrink-0 text-sm py-1.5"
+                          placeholder="Litres"
                         />
                         <input
                           type="text"

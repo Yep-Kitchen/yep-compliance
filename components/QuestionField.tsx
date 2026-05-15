@@ -1,7 +1,38 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import type { Question, IngredientLot } from "@/lib/types";
+
+/** Local-state input for litres — lets the user type freely, converts to grams only on blur */
+function LitresInput({ weightG, density, onChange }: { weightG: string; density: number; onChange: (g: string) => void }) {
+  const [display, setDisplay] = useState(weightG ? (Number(weightG) / density).toFixed(2) : "");
+
+  // Reset display if parent clears the value
+  useEffect(() => {
+    if (!weightG) setDisplay("");
+  }, [weightG]);
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={display}
+      onChange={(e) => setDisplay(e.target.value)}
+      onBlur={(e) => {
+        const litres = parseFloat(e.target.value);
+        if (!isNaN(litres) && litres > 0) {
+          onChange(String(Math.round(litres * density)));
+          setDisplay(litres.toFixed(2));
+        } else {
+          onChange("");
+          setDisplay("");
+        }
+      }}
+      className="input w-24 shrink-0 text-sm py-1.5"
+      placeholder="Litres"
+    />
+  );
+}
 
 interface Props {
   question: Question;
@@ -402,21 +433,14 @@ export default function QuestionField({ question, value, onChange, error, ingred
                     )}
                     {density ? (
                       <>
-                        <input
-                          type="number"
-                          value={lotUse.weight_g ? (Number(lotUse.weight_g) / density).toFixed(2) : ""}
-                          onChange={(e) => {
-                            const litres = parseFloat(e.target.value);
-                            updateLot(ingIdx, lotIdx, "weight_g", e.target.value ? String(Math.round(litres * density)) : "");
-                          }}
-                          className="input w-24 shrink-0 text-sm py-1.5"
-                          placeholder="Litres"
-                          inputMode="decimal"
-                          step="0.01"
+                        <LitresInput
+                          weightG={lotUse.weight_g}
+                          density={density}
+                          onChange={(g) => updateLot(ingIdx, lotIdx, "weight_g", g)}
                         />
                         <input
-                          type="number"
-                          value={lotUse.weight_g}
+                          type="text"
+                          value={lotUse.weight_g ? `${Number(lotUse.weight_g).toLocaleString()}g` : ""}
                           readOnly
                           className="input w-24 shrink-0 text-sm py-1.5 bg-gray-50 text-gray-400 cursor-default"
                           placeholder="g (auto)"

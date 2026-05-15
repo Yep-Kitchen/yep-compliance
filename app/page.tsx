@@ -145,7 +145,7 @@ export default function Dashboard() {
             </svg>
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/kernel.svg" alt="Kernel" className="h-7 w-auto" />
+          <img src="/kernel.png" alt="Kernel" className="h-7 w-auto" />
           <div className="w-8" />
         </div>
 

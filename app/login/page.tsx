@@ -68,7 +68,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-8">
         <div className="flex flex-col items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/kernel.svg" alt="Kernel" className="w-40 h-auto drop-shadow-xl mb-6" />
+          <img src="/kernel.png" alt="Kernel" className="w-40 h-auto drop-shadow-xl mb-6" />
           <p className="font-serif text-6xl text-brown leading-none tracking-tight">Kernel</p>
           <p className="text-sm text-brown/60 mt-2">Sign in to continue</p>
         </div>

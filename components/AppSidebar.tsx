@@ -84,12 +84,12 @@ export default function AppSidebar({ mobileOpen, onClose }: Props) {
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0
       `}>
-        {/* Wordmark */}
-        <div className="px-4 py-4 border-b border-brown/15 flex items-center gap-2.5">
+        {/* Wordmark — home button */}
+        <Link href="/" onClick={onClose} className="px-4 py-4 border-b border-brown/15 flex items-center gap-2.5 hover:opacity-80 transition-opacity">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/kernel.png" alt="" className="h-9 w-auto shrink-0 drop-shadow-sm" />
           <p className="font-serif text-4xl text-brown leading-none tracking-tight">Kernel</p>
-        </div>
+        </Link>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">

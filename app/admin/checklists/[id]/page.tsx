@@ -114,7 +114,9 @@ export default function EditChecklistPage() {
   }
 
   async function deleteQuestion(qId: string) {
-    if (!confirm("Delete this question?")) return;
+    if (!confirm("Delete this question? Any existing answers to this question will also be removed.")) return;
+    // Must delete child answers before the question (foreign key constraint)
+    await supabase.from("answers").delete().eq("question_id", qId);
     const { error } = await supabase.from("questions").delete().eq("id", qId);
     if (error) { alert("Failed to delete: " + error.message); return; }
     const remaining = questions.filter(q => q.id !== qId);

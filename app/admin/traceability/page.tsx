@@ -40,7 +40,7 @@ interface DispatchInfo {
 }
 
 interface TraceResult {
-  searchType: "lot" | "batch";
+  searchType: "lot" | "batch" | "ingredient";
   query: string;
   lots: LotInfo[];
   batches: BatchInfo[];
@@ -49,10 +49,12 @@ interface TraceResult {
 
 export default function TraceabilityPage() {
   const [query, setQuery] = useState("");
-  const [searchType, setSearchType] = useState<"lot" | "batch">("lot");
+  const [searchType, setSearchType] = useState<"lot" | "batch" | "ingredient">("lot");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TraceResult | null>(null);
   const [error, setError] = useState("");
+  // Ingredient search: step 1 shows matching lots to pick from
+  const [ingredientLots, setIngredientLots] = useState<LotInfo[] | null>(null);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -60,12 +62,15 @@ export default function TraceabilityPage() {
     setLoading(true);
     setError("");
     setResult(null);
+    setIngredientLots(null);
 
     try {
       if (searchType === "lot") {
         await searchByLot(query.trim());
-      } else {
+      } else if (searchType === "batch") {
         await searchByBatch(query.trim());
+      } else {
+        await searchByIngredient(query.trim());
       }
     } catch {
       setError("Search failed — please try again.");
@@ -206,6 +211,48 @@ export default function TraceabilityPage() {
     setResult({ searchType: "batch", query: julianCode, lots, batches, dispatches: (disps ?? []) as DispatchInfo[] });
   }
 
+  async function searchByIngredient(name: string) {
+    // Find matching ingredients
+    const { data: ingredients } = await supabase
+      .from("ingredients")
+      .select("id, name")
+      .ilike("name", `%${name}%`);
+
+    if (!ingredients || ingredients.length === 0) {
+      setError(`No ingredients found matching "${name}".`);
+      return;
+    }
+
+    const ingredientIds = ingredients.map((i: { id: string }) => i.id);
+
+    // Get all lots for those ingredients, newest first
+    const { data: lots } = await supabase
+      .from("ingredient_lots")
+      .select("*, ingredient:ingredients(name)")
+      .in("ingredient_id", ingredientIds)
+      .order("received_date", { ascending: false });
+
+    if (!lots || lots.length === 0) {
+      setError(`No goods-in records found for "${name}".`);
+      return;
+    }
+
+    setIngredientLots(lots as LotInfo[]);
+  }
+
+  async function traceFromLot(lot: LotInfo) {
+    setLoading(true);
+    setError("");
+    setIngredientLots(null);
+
+    try {
+      await searchByLot(lot.julian_code);
+    } catch {
+      setError("Trace failed — please try again.");
+    }
+    setLoading(false);
+  }
+
   return (
     <>
       <header className="border-b border-gray-200 bg-white shadow-sm">
@@ -222,19 +269,26 @@ export default function TraceabilityPage() {
         {/* Search */}
         <div className="card p-6">
           <h2 className="text-sm font-semibold text-gray-900 mb-1">Full chain traceability</h2>
-          <p className="text-xs text-gray-500 mb-4">Search by Julian code — either a raw material lot or a finished batch. Returns the full ingredient → production → dispatch chain.</p>
+          <p className="text-xs text-gray-500 mb-4">Search by ingredient name, Julian code, or batch code. Returns the full ingredient → production → dispatch chain.</p>
           <form onSubmit={handleSearch} className="space-y-3">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <button
                 type="button"
-                onClick={() => setSearchType("lot")}
-                className={`px-3 py-1.5 rounded text-xs font-medium transition ${searchType === "lot" ? "bg-brand text-brown" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                onClick={() => { setSearchType("ingredient"); setResult(null); setIngredientLots(null); setError(""); }}
+                className={`px-3 py-1.5 rounded text-xs font-medium transition ${searchType === "ingredient" ? "bg-brand text-brown" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
-                Julian code / lot
+                Ingredient name
               </button>
               <button
                 type="button"
-                onClick={() => setSearchType("batch")}
+                onClick={() => { setSearchType("lot"); setResult(null); setIngredientLots(null); setError(""); }}
+                className={`px-3 py-1.5 rounded text-xs font-medium transition ${searchType === "lot" ? "bg-brand text-brown" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              >
+                Raw material lot code
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSearchType("batch"); setResult(null); setIngredientLots(null); setError(""); }}
                 className={`px-3 py-1.5 rounded text-xs font-medium transition ${searchType === "batch" ? "bg-brand text-brown" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
                 Batch Julian code
@@ -245,7 +299,11 @@ export default function TraceabilityPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={searchType === "lot" ? "e.g. 26124 (raw material)" : "e.g. 26134 (batch Julian code)"}
+                placeholder={
+                  searchType === "ingredient" ? "e.g. Shallots, Garlic, Naga chilli…" :
+                  searchType === "lot" ? "e.g. 26124 (raw material Julian code)" :
+                  "e.g. 26134 (batch Julian code)"
+                }
                 className="input flex-1"
               />
               <button type="submit" disabled={loading} className="btn-primary shrink-0">
@@ -255,6 +313,36 @@ export default function TraceabilityPage() {
           </form>
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
         </div>
+
+        {/* Ingredient lot picker — step 1 of ingredient search */}
+        {ingredientLots && (
+          <div className="card overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-brand/30 bg-brand-cream flex items-center gap-2">
+              <span className="font-semibold text-sm text-brown">Goods-in records</span>
+              <span className="text-xs text-brown/60">{ingredientLots.length} lot{ingredientLots.length !== 1 ? "s" : ""} found — select one to trace</span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {ingredientLots.map(lot => (
+                <button
+                  key={lot.id}
+                  onClick={() => traceFromLot(lot)}
+                  className="w-full text-left px-4 py-3 hover:bg-brand/10 transition-colors flex items-center justify-between gap-4 group"
+                >
+                  <div className="flex items-center gap-4 min-w-0">
+                    <span className="font-mono font-semibold text-sm text-gray-900 shrink-0">{lot.julian_code}</span>
+                    <span className="text-sm font-medium text-gray-700 truncate">{lot.ingredient?.name}</span>
+                    {lot.supplier && <span className="text-xs text-gray-400 truncate hidden sm:block">{lot.supplier}</span>}
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0 text-xs text-gray-500">
+                    <span>{formatDate(lot.received_date)}</span>
+                    <span className="text-gray-400">{lot.quantity_received_g.toLocaleString()} g received</span>
+                    <span className="text-brown font-medium opacity-0 group-hover:opacity-100 transition-opacity">Trace →</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {result && (
           <div className="space-y-5">

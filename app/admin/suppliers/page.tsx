@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import DocUploader from "@/components/DocUploader";
 import RiskCalculator from "@/components/RiskCalculator";
+import SAQResponsesViewer from "@/components/SAQResponsesViewer";
 
 type SupplierType = "raw_material" | "packaging" | "service";
 type SupplierRisk = "low" | "medium" | "high";
@@ -109,6 +110,7 @@ export default function SuppliersPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [riskCalcOpen, setRiskCalcOpen] = useState(false);
+  const [saqViewerOpen, setSaqViewerOpen] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -182,13 +184,20 @@ export default function SuppliersPage() {
     };
 
     if (isNew) {
-      await supabase.from("suppliers").insert(payload);
+      const { data: created } = await supabase
+        .from("suppliers")
+        .insert(payload)
+        .select()
+        .single();
+      setSaving(false);
+      await load();
+      if (created) openEdit(created as Supplier); // auto-reopen so SAQ link is visible immediately
     } else if (editing) {
       await supabase.from("suppliers").update(payload).eq("id", editing.id);
+      setSaving(false);
+      closePanel();
+      await load();
     }
-    setSaving(false);
-    closePanel();
-    await load();
   }
 
   async function confirmDelete(id: string) {
@@ -404,9 +413,18 @@ export default function SuppliersPage() {
                     </button>
                   </div>
                   {editing.saq_completed && (
-                    <p className="text-xs text-brown font-medium">
-                      ✅ SAQ completed {editing.saq_date ? `on ${new Date(editing.saq_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-brown font-medium">
+                        ✅ SAQ completed {editing.saq_date ? `on ${new Date(editing.saq_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setSaqViewerOpen(true)}
+                        className="text-xs font-medium text-brown hover:underline"
+                      >
+                        View responses →
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
@@ -530,6 +548,18 @@ export default function SuppliersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* SAQ Responses Viewer */}
+      {editing && (
+        <SAQResponsesViewer
+          open={saqViewerOpen}
+          onClose={() => setSaqViewerOpen(false)}
+          supplierName={editing.name}
+          supplierId={editing.id}
+          supplierType={editing.type}
+          saqDate={editing.saq_date}
+        />
       )}
 
       {/* Risk Calculator Modal */}

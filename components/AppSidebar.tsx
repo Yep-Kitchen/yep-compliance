@@ -33,6 +33,7 @@ const NAV = [
     title: "Admin",
     items: [
       { label: "Manage Checklists", href: "/admin/checklists" },
+      { label: "SAQ Questions",     href: "/admin/saq-questions" },
     ],
   },
 ];

@@ -15,208 +15,24 @@ interface SupplierRow {
   saq_date: string | null;
 }
 
-type AnswerType = "yesnona" | "text" | "textarea" | "date";
-
 interface QuestionDef {
-  id: string;
-  text: string;
-  type: AnswerType;
+  id: string;           // maps to question_id from DB
+  text: string;         // maps to question_text
+  type: "yesnona" | "text" | "textarea" | "date";
   placeholder?: string;
   required?: boolean;
-  forTypes?: SupplierType[];
+  forTypes?: string[];  // maps to for_types
 }
 
 interface SectionDef {
   number: string;
   title: string;
-  forTypes?: SupplierType[];
+  forTypes?: string[];
   questions: QuestionDef[];
 }
 
-const SECTIONS: SectionDef[] = [
-  {
-    number: "1",
-    title: "Company Details",
-    questions: [
-      { id: "1_company_name", text: "Company / trading name", type: "text", required: true },
-      { id: "1_address", text: "Full address (including postcode)", type: "textarea", required: true },
-      { id: "1_contact_name", text: "Main contact name", type: "text", required: true },
-      { id: "1_contact_position", text: "Job title / position", type: "text", required: true },
-      { id: "1_tel", text: "Telephone number", type: "text", required: true },
-      { id: "1_email", text: "Email address", type: "text", required: true },
-      { id: "1_products", text: "Products / services you supply to us", type: "text", required: true },
-    ],
-  },
-  {
-    number: "2",
-    title: "Food Safety Certification",
-    questions: [
-      { id: "2_cert_held", text: "Do you hold a recognised food safety certification? (e.g. BRCGS, IFS, FSSC 22000, SQF, SALSA, ISO 22000)", type: "yesnona" },
-      { id: "2_cert_name", text: "Name of certification(s) held", type: "text", placeholder: "e.g. BRCGS Food Issue 9 – Grade A" },
-      { id: "2_cert_number", text: "Certificate number", type: "text" },
-      { id: "2_cert_expiry", text: "Certificate expiry date", type: "date" },
-      { id: "2_cert_body", text: "Certifying body", type: "text", placeholder: "e.g. NSF, Intertek, SGS" },
-      { id: "2_unannounced", text: "Are your audits unannounced?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "3",
-    title: "Quality Management System",
-    questions: [
-      { id: "3_qms", text: "Do you have a documented Quality Management System (QMS)?", type: "yesnona" },
-      { id: "3_qms_review", text: "Is your QMS reviewed and updated at least annually?", type: "yesnona" },
-      { id: "3_food_safety_policy", text: "Do you have a documented food safety policy signed by senior management?", type: "yesnona" },
-      { id: "3_internal_audit", text: "Do you conduct internal audits of your food safety systems?", type: "yesnona" },
-      { id: "3_supplier_approval", text: "Do you have a documented supplier approval and monitoring procedure?", type: "yesnona" },
-      { id: "3_complaints", text: "Do you have a documented customer complaints procedure?", type: "yesnona" },
-      { id: "3_recall", text: "Do you have a documented product recall / withdrawal procedure?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "4",
-    title: "HACCP & Food Safety Management",
-    questions: [
-      { id: "4_haccp", text: "Do you have a documented HACCP plan in place?", type: "yesnona" },
-      { id: "4_haccp_review", text: "Is your HACCP plan reviewed at least annually or after any significant change?", type: "yesnona" },
-      { id: "4_ccp_monitored", text: "Are all Critical Control Points (CCPs) monitored and records maintained?", type: "yesnona" },
-      { id: "4_corrective_actions", text: "Are corrective actions documented and followed up?", type: "yesnona" },
-      { id: "4_verification", text: "Is your HACCP system verified by a competent person?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "5",
-    title: "Premises & Environment",
-    questions: [
-      { id: "5_premises_condition", text: "Is the site and building maintained in a good state of repair?", type: "yesnona" },
-      { id: "5_pest_control", text: "Is there a documented and active pest control programme in place?", type: "yesnona" },
-      { id: "5_pest_records", text: "Are pest control visits recorded and reviewed?", type: "yesnona" },
-      { id: "5_waste_management", text: "Is there a documented waste management procedure?", type: "yesnona" },
-      { id: "5_water_quality", text: "Is the water used in production potable / tested regularly?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "6",
-    title: "Equipment & Maintenance",
-    questions: [
-      { id: "6_maintenance", text: "Is there a documented preventive maintenance programme for food contact equipment?", type: "yesnona" },
-      { id: "6_calibration", text: "Is measuring and monitoring equipment calibrated at defined intervals?", type: "yesnona" },
-      { id: "6_calibration_records", text: "Are calibration records maintained?", type: "yesnona" },
-      { id: "6_breakdowns", text: "Are equipment breakdown/repair records maintained?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "7",
-    title: "Staff Hygiene & Welfare",
-    questions: [
-      { id: "7_welfare", text: "Are adequate staff welfare facilities provided (toilets, changing, rest areas)?", type: "yesnona" },
-      { id: "7_handwashing", text: "Are hand-washing facilities available at all critical points in production?", type: "yesnona" },
-      { id: "7_hygiene_policy", text: "Do you have a documented personal hygiene policy for all food handlers?", type: "yesnona" },
-      { id: "7_illness_reporting", text: "Is there a procedure for reporting illness and exclusion of food handlers?", type: "yesnona" },
-      { id: "7_visitor_control", text: "Are visitor hygiene requirements enforced?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "8",
-    title: "Contamination Control",
-    questions: [
-      { id: "8_glass_policy", text: "Do you have a glass and brittle plastic policy?", type: "yesnona" },
-      { id: "8_foreign_body", text: "Do you have a foreign body detection / control procedure?", type: "yesnona" },
-      { id: "8_metal_detection", text: "Is metal detection or X-ray equipment used where appropriate?", type: "yesnona" },
-      { id: "8_colour_coding", text: "Is colour-coded equipment used to prevent cross-contamination?", type: "yesnona" },
-      { id: "8_chemicals", text: "Are cleaning chemicals and food-grade chemicals stored separately from food?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "9",
-    title: "Allergen Management",
-    forTypes: ["raw_material"],
-    questions: [
-      { id: "9_allergen_policy", text: "Do you have a documented allergen management policy?", type: "yesnona" },
-      { id: "9_allergen_risk", text: "Have you completed an allergen risk assessment for all products?", type: "yesnona" },
-      { id: "9_allergen_labelling", text: "Are allergens correctly declared on product labels and/or specifications?", type: "yesnona" },
-      { id: "9_allergen_cleaning", text: "Do you have allergen-specific cleaning procedures to prevent cross-contact?", type: "yesnona" },
-      { id: "9_allergen_segregation", text: "Are allergenic ingredients physically segregated during storage and production?", type: "yesnona" },
-      { id: "9_allergen_training", text: "Are all relevant staff trained in allergen awareness?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "10",
-    title: "Product Integrity & Specifications",
-    questions: [
-      { id: "10_specs", text: "Do you have up-to-date written product specifications for all products supplied to us?", type: "yesnona" },
-      { id: "10_testing", text: "Do you conduct microbiological and/or chemical product testing?", type: "yesnona" },
-      { id: "10_testing_freq", text: "If yes, how frequently is testing carried out?", type: "text", placeholder: "e.g. Every batch, monthly, annually" },
-      { id: "10_shelf_life", text: "Are shelf-life / durability studies carried out and documented?", type: "yesnona" },
-      { id: "10_labelling", text: "Do your products comply with applicable food labelling legislation?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "11",
-    title: "Cleaning & Housekeeping",
-    questions: [
-      { id: "11_cleaning_schedule", text: "Do you have a documented cleaning schedule for all food contact surfaces and equipment?", type: "yesnona" },
-      { id: "11_cleaning_verified", text: "Is the effectiveness of cleaning verified (e.g. swabbing, visual inspection)?", type: "yesnona" },
-      { id: "11_cleaning_records", text: "Are cleaning records maintained?", type: "yesnona" },
-      { id: "11_detergents", text: "Are cleaning chemicals approved for use in a food environment?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "12",
-    title: "Process Controls & Traceability",
-    questions: [
-      { id: "12_process_controls", text: "Do you have documented process controls (e.g. temperature, time, pH)?", type: "yesnona" },
-      { id: "12_monitoring_records", text: "Are process monitoring records maintained and reviewed?", type: "yesnona" },
-      { id: "12_traceability", text: "Can you trace all raw materials from receipt through to finished product despatch?", type: "yesnona" },
-      { id: "12_traceability_test", text: "Do you conduct traceability exercises to verify your system?", type: "yesnona" },
-      { id: "12_batch_coding", text: "Are all products batch-coded to allow traceability?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "13",
-    title: "Transport & Storage",
-    questions: [
-      { id: "13_storage_conditions", text: "Are raw materials and finished goods stored under appropriate conditions (temp, humidity)?", type: "yesnona" },
-      { id: "13_temp_monitoring", text: "Are storage temperatures monitored and recorded?", type: "yesnona" },
-      { id: "13_vehicle_hygiene", text: "Are delivery vehicles maintained in a clean and hygienic condition?", type: "yesnona" },
-      { id: "13_delivery_checks", text: "Are incoming deliveries inspected and documented?", type: "yesnona" },
-      { id: "13_fifo", text: "Is a FIFO (first in, first out) system applied to stock rotation?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "14",
-    title: "Training & Personnel",
-    questions: [
-      { id: "14_training_records", text: "Are documented training records maintained for all food handlers?", type: "yesnona" },
-      { id: "14_food_hygiene_training", text: "Have all food handlers received appropriate food hygiene training?", type: "yesnona" },
-      { id: "14_training_refreshed", text: "Is training refreshed at regular intervals or when practices change?", type: "yesnona" },
-      { id: "14_management_training", text: "Has management received advanced food safety / HACCP training?", type: "yesnona" },
-    ],
-  },
-  {
-    number: "15",
-    title: "Genetically Modified & Irradiated Products",
-    forTypes: ["raw_material"],
-    questions: [
-      { id: "15_gm", text: "Do any of the products you supply contain or are derived from genetically modified organisms (GMOs)?", type: "yesnona" },
-      { id: "15_gm_detail", text: "If yes, please provide details", type: "text", placeholder: "Which products and which GM ingredient" },
-      { id: "15_irradiated", text: "Have any of the products you supply been treated with ionising radiation?", type: "yesnona" },
-      { id: "15_irradiated_detail", text: "If yes, please provide details", type: "text" },
-    ],
-  },
-  {
-    number: "16",
-    title: "Declaration",
-    questions: [
-      { id: "16_declaration_name", text: "Full name of person completing this questionnaire", type: "text", required: true },
-      { id: "16_declaration_position", text: "Job title / position", type: "text", required: true },
-      { id: "16_declaration_date", text: "Date", type: "date", required: true },
-      { id: "16_additional_info", text: "Any additional information you would like to share", type: "textarea", placeholder: "Optional" },
-    ],
-  },
-];
-
-function visibleSections(supplierType: SupplierType): SectionDef[] {
-  return SECTIONS.filter(s => !s.forTypes || s.forTypes.includes(supplierType));
+function visibleSections(sections: SectionDef[], supplierType: SupplierType): SectionDef[] {
+  return sections.filter(s => !s.forTypes || s.forTypes.includes(supplierType));
 }
 
 function visibleQuestions(questions: QuestionDef[], supplierType: SupplierType): QuestionDef[] {
@@ -248,6 +64,7 @@ export default function SAQPage() {
   const token = typeof params.token === "string" ? params.token : Array.isArray(params.token) ? params.token[0] : "";
 
   const [supplier, setSupplier] = useState<SupplierRow | null>(null);
+  const [sections, setSections] = useState<SectionDef[]>([]);
   const [status, setStatus] = useState<"loading" | "not_found" | "already_done" | "form" | "submitted">("loading");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -260,8 +77,42 @@ export default function SAQPage() {
         .select("*")
         .eq("saq_token", token)
         .maybeSingle();
+
       if (!data) { setStatus("not_found"); return; }
       setSupplier(data as SupplierRow);
+
+      const { data: qData } = await supabase
+        .from("saq_questions")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order");
+
+      if (qData) {
+        // Group into sections
+        const sectionMap = new Map<string, SectionDef>();
+        for (const q of qData) {
+          const key = q.section_number;
+          if (!sectionMap.has(key)) {
+            sectionMap.set(key, {
+              number: q.section_number,
+              title: q.section_title,
+              forTypes: undefined,
+              questions: [],
+            });
+          }
+          const section = sectionMap.get(key)!;
+          section.questions.push({
+            id: q.question_id,
+            text: q.question_text,
+            type: q.answer_type,
+            placeholder: q.placeholder ?? undefined,
+            required: q.required ?? false,
+            forTypes: q.for_types ?? undefined,
+          });
+        }
+        setSections(Array.from(sectionMap.values()));
+      }
+
       if ((data as SupplierRow).saq_completed) {
         setStatus("already_done");
       } else {
@@ -312,7 +163,7 @@ export default function SAQPage() {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        {status === "loading" && (
+        {(status === "loading" || (status === "form" && sections.length === 0)) && (
           <div className="py-24 text-center text-gray-400 text-sm">Loading questionnaire…</div>
         )}
 
@@ -345,7 +196,7 @@ export default function SAQPage() {
           </div>
         )}
 
-        {status === "form" && supplier && (
+        {status === "form" && supplier && sections.length > 0 && (
           <form onSubmit={handleSubmit} noValidate>
             {/* Supplier name */}
             <div className="mb-8">
@@ -356,7 +207,7 @@ export default function SAQPage() {
               </p>
             </div>
 
-            {visibleSections(supplier.type).map(section => {
+            {visibleSections(sections, supplier.type).map(section => {
               const qs = visibleQuestions(section.questions, supplier.type);
               if (qs.length === 0) return null;
               return (

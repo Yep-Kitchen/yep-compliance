@@ -178,9 +178,9 @@ export default function SubmissionPage() {
 
         {/* Next pending — shown after sign-off */}
         {isSigned && nextPendingId && (
-          <div className="card p-5 flex items-center justify-between bg-brand/5 border-brand/20">
+          <div className="card p-5 flex flex-wrap items-center justify-between gap-3 bg-brand/5 border-brand/20">
             <p className="text-sm font-medium text-gray-900">{pendingCount} more submission{pendingCount !== 1 ? "s" : ""} waiting for approval</p>
-            <button onClick={() => router.push(`/submission/${nextPendingId}`)} className="btn-primary">
+            <button onClick={() => router.push(`/submission/${nextPendingId}`)} className="btn-primary shrink-0">
               Next to approve →
             </button>
           </div>

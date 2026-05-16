@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import DocUploader from "@/components/DocUploader";
 
 type SupplierType = "raw_material" | "packaging" | "service";
 type SupplierRisk = "low" | "medium" | "high";
@@ -421,6 +422,16 @@ export default function SuppliersPage() {
               <Field label="Notes">
                 <textarea className="input w-full" rows={3} value={form.notes ?? ""} onChange={e => setF("notes", e.target.value || null)} placeholder="Any additional notes…" />
               </Field>
+
+              {/* Documents — only shown when editing an existing supplier */}
+              {!isNew && editing && (
+                <DocUploader
+                  entityType="supplier"
+                  entityId={editing.id}
+                  docType="accreditation"
+                  label="Accreditation & Certificates"
+                />
+              )}
 
               {!isNew && editing && (
                 <div className="border-t border-gray-200 pt-4">

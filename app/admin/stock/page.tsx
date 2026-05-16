@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Ingredient, IngredientLot } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import DocUploader from "@/components/DocUploader";
 
 interface Supplier { id: string; name: string }
 type ItemType = "ingredient" | "packaging" | "supplies";
@@ -411,6 +412,16 @@ export default function RawMaterialsPage() {
                   />
                   <p className="mt-1 text-xs text-gray-400">Set for liquids so Goods In can accept litres</p>
                 </div>
+              )}
+
+              {/* Documents — only shown when editing an existing item */}
+              {!isNew && editing && editing.id && (
+                <DocUploader
+                  entityType={editType === "supplies" ? "supply" : editType === "packaging" ? "packaging" : "ingredient"}
+                  entityId={editing.id}
+                  docType={editType === "supplies" ? "coshh" : "spec_sheet"}
+                  label={editType === "supplies" ? "COSHH Sheet" : "Spec Sheet"}
+                />
               )}
             </div>
 

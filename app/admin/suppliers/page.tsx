@@ -15,6 +15,10 @@ interface Supplier {
   name: string;
   type: SupplierType;
   supplies: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  saq_token: string | null;
   certification: Certification | null;
   hygiene_rating: number | null;
   cert_expiry: string | null;
@@ -34,6 +38,10 @@ function emptySupplier(): Omit<Supplier, "id" | "created_at"> {
     name: "",
     type: "raw_material",
     supplies: "",
+    contact_name: null,
+    contact_email: null,
+    contact_phone: null,
+    saq_token: null,
     certification: null,
     hygiene_rating: null,
     cert_expiry: null,
@@ -98,6 +106,7 @@ export default function SuppliersPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Omit<Supplier, "id" | "created_at">>(emptySupplier());
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -108,7 +117,8 @@ export default function SuppliersPage() {
   }
 
   function openNew() {
-    setForm(emptySupplier());
+    const token = crypto.randomUUID();
+    setForm({ ...emptySupplier(), saq_token: token });
     setEditing(null);
     setIsNew(true);
   }
@@ -118,6 +128,10 @@ export default function SuppliersPage() {
       name: s.name,
       type: s.type,
       supplies: s.supplies,
+      contact_name: s.contact_name,
+      contact_email: s.contact_email,
+      contact_phone: s.contact_phone,
+      saq_token: s.saq_token,
       certification: s.certification,
       hygiene_rating: s.hygiene_rating,
       cert_expiry: s.cert_expiry,
@@ -146,10 +160,17 @@ export default function SuppliersPage() {
   async function save() {
     if (!form.name.trim() || !form.supplies.trim()) return;
     setSaving(true);
+
+    const saqToken = form.saq_token || (isNew ? crypto.randomUUID() : null);
+
     const payload = {
       ...form,
       name: form.name.trim(),
       supplies: form.supplies.trim(),
+      contact_name: form.contact_name?.trim() || null,
+      contact_email: form.contact_email?.trim() || null,
+      contact_phone: form.contact_phone?.trim() || null,
+      saq_token: saqToken,
       cert_expiry: form.cert_expiry || null,
       saq_date: form.saq_date || null,
       next_review_due: form.next_review_due || null,
@@ -242,8 +263,9 @@ export default function SuppliersPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="text-left px-4 py-2.5 font-medium text-gray-600">Supplier</th>
-                    <th className="text-left px-3 py-2.5 font-medium text-gray-600">Type</th>
-                    <th className="text-left px-3 py-2.5 font-medium text-gray-600">Supplies</th>
+                    <th className="text-left px-3 py-2.5 font-medium text-gray-600">Contact</th>
+                    <th className="text-left px-3 py-2.5 font-medium text-gray-600">Email</th>
+                    <th className="text-left px-3 py-2.5 font-medium text-gray-600">Phone</th>
                     <th className="text-left px-3 py-2.5 font-medium text-gray-600">Certification</th>
                     <th className="text-left px-3 py-2.5 font-medium text-gray-600">Cert Expires</th>
                     <th className="text-left px-3 py-2.5 font-medium text-gray-600">SAQ</th>
@@ -258,8 +280,9 @@ export default function SuppliersPage() {
                   {filtered.map(s => (
                     <tr key={s.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-semibold text-gray-900">{s.name}</td>
-                      <td className="px-3 py-3 text-gray-500">{TYPE_LABELS[s.type]}</td>
-                      <td className="px-3 py-3 text-gray-600">{s.supplies}</td>
+                      <td className="px-3 py-3 text-gray-600">{s.contact_name ?? <span className="text-gray-400">—</span>}</td>
+                      <td className="px-3 py-3 text-gray-600">{s.contact_email ?? <span className="text-gray-400">—</span>}</td>
+                      <td className="px-3 py-3 text-gray-600">{s.contact_phone ?? <span className="text-gray-400">—</span>}</td>
                       <td className="px-3 py-3">
                         {s.certification
                           ? <span>{s.certification}{s.hygiene_rating ? ` (${s.hygiene_rating}/5)` : ""}</span>
@@ -293,15 +316,15 @@ export default function SuppliersPage() {
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(s)} className="btn-ghost text-xs px-2">Edit</button>
-                        {deleteConfirm === s.id ? (
-                          <>
-                            <button onClick={() => confirmDelete(s.id)} className="text-xs text-red-600 font-semibold hover:underline px-1">Delete?</button>
-                            <button onClick={() => setDeleteConfirm(null)} className="text-xs text-gray-400 hover:underline px-1">Cancel</button>
-                          </>
-                        ) : (
-                          <button onClick={() => setDeleteConfirm(s.id)} className="text-xs text-red-400 hover:text-red-600 px-1">✕</button>
-                        )}
+                          <button onClick={() => openEdit(s)} className="btn-ghost text-xs px-2">Edit</button>
+                          {deleteConfirm === s.id ? (
+                            <>
+                              <button onClick={() => confirmDelete(s.id)} className="text-xs text-red-600 font-semibold hover:underline px-1">Delete?</button>
+                              <button onClick={() => setDeleteConfirm(null)} className="text-xs text-gray-400 hover:underline px-1">Cancel</button>
+                            </>
+                          ) : (
+                            <button onClick={() => setDeleteConfirm(s.id)} className="text-xs text-red-400 hover:text-red-600 px-1">✕</button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -340,6 +363,53 @@ export default function SuppliersPage() {
                 <input className="input w-full" value={form.supplies} onChange={e => setF("supplies", e.target.value)} placeholder="e.g. Fresh produce, Glass jars, Pest control" />
               </Field>
 
+              {/* Contact Information */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Contact Information</p>
+                <div className="grid grid-cols-1 gap-3">
+                  <Field label="Contact name">
+                    <input className="input w-full" value={form.contact_name ?? ""} onChange={e => setF("contact_name", e.target.value || null)} placeholder="e.g. Jane Smith" />
+                  </Field>
+                  <Field label="Contact email">
+                    <input className="input w-full" type="email" value={form.contact_email ?? ""} onChange={e => setF("contact_email", e.target.value || null)} placeholder="jane@supplier.com" />
+                  </Field>
+                  <Field label="Contact phone">
+                    <input className="input w-full" type="tel" value={form.contact_phone ?? ""} onChange={e => setF("contact_phone", e.target.value || null)} placeholder="+44 7700 900000" />
+                  </Field>
+                </div>
+              </div>
+
+              {/* SAQ Link — only for existing suppliers */}
+              {!isNew && editing && editing.saq_token && (
+                <div className="rounded-lg border border-brand/40 bg-brand/10 p-3 space-y-2">
+                  <p className="text-xs font-semibold text-brown uppercase tracking-wide">SAQ Link</p>
+                  <p className="text-xs text-gray-600">Share this link with your supplier to complete the self-assessment questionnaire.</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-[11px] bg-white border border-gray-200 rounded px-2 py-1.5 text-gray-700 truncate">
+                      {typeof window !== "undefined" ? `${window.location.origin}/saq/${editing.saq_token}` : `/saq/${editing.saq_token}`}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = `${window.location.origin}/saq/${editing.saq_token}`;
+                        navigator.clipboard.writeText(url);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="shrink-0 text-xs font-medium text-brown border border-brand rounded px-2 py-1.5 hover:bg-brand/20 transition"
+                    >
+                      {copied ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+                  {editing.saq_completed && (
+                    <p className="text-xs text-brown font-medium">
+                      ✅ SAQ completed {editing.saq_date ? `on ${new Date(editing.saq_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Certification */}
               <Field label="Certification">
                 <select className="input w-full" value={form.certification ?? ""} onChange={e => setF("certification", (e.target.value || null) as Certification | null)}>
                   <option value="">— Select —</option>
@@ -360,23 +430,6 @@ export default function SuppliersPage() {
               <Field label="Certificate expiry date">
                 <input className="input w-full" type="date" value={form.cert_expiry ?? ""} onChange={e => setF("cert_expiry", e.target.value || null)} />
               </Field>
-
-              <div className="flex items-center gap-3">
-                <input
-                  id="saq"
-                  type="checkbox"
-                  checked={form.saq_completed}
-                  onChange={e => setF("saq_completed", e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <label htmlFor="saq" className="text-sm text-gray-700">SAQ completed</label>
-              </div>
-
-              {form.saq_completed && (
-                <Field label="SAQ date">
-                  <input className="input w-full" type="date" value={form.saq_date ?? ""} onChange={e => setF("saq_date", e.target.value || null)} />
-                </Field>
-              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Supplier risk">

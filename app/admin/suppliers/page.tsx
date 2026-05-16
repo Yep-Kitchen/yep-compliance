@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import DocUploader from "@/components/DocUploader";
+import RiskCalculator from "@/components/RiskCalculator";
 
 type SupplierType = "raw_material" | "packaging" | "service";
 type SupplierRisk = "low" | "medium" | "high";
@@ -107,6 +108,7 @@ export default function SuppliersPage() {
   const [form, setForm] = useState<Omit<Supplier, "id" | "created_at">>(emptySupplier());
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [riskCalcOpen, setRiskCalcOpen] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -431,23 +433,42 @@ export default function SuppliersPage() {
                 <input className="input w-full" type="date" value={form.cert_expiry ?? ""} onChange={e => setF("cert_expiry", e.target.value || null)} />
               </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Supplier risk">
-                  <select className="input w-full" value={form.supplier_risk ?? ""} onChange={e => setF("supplier_risk", (e.target.value || null) as SupplierRisk | null)}>
-                    <option value="">— Select —</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </Field>
-                <Field label="Raw material risk">
-                  <select className="input w-full" value={form.raw_material_risk ?? ""} onChange={e => setF("raw_material_risk", (e.target.value || null) as SupplierRisk | null)}>
-                    <option value="">— Select —</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </Field>
+              {/* Risk fields + calculator */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-gray-700">Risk Assessment</p>
+                  {form.type !== "service" && (
+                    <button
+                      type="button"
+                      onClick={() => setRiskCalcOpen(true)}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-brown hover:underline"
+                    >
+                      <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <rect x="1" y="1" width="10" height="10" rx="1.5"/>
+                        <path d="M3.5 4h5M3.5 6h5M3.5 8h3"/>
+                      </svg>
+                      Run calculator
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Supplier risk">
+                    <select className="input w-full" value={form.supplier_risk ?? ""} onChange={e => setF("supplier_risk", (e.target.value || null) as SupplierRisk | null)}>
+                      <option value="">— Select —</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </Field>
+                  <Field label="Raw material risk">
+                    <select className="input w-full" value={form.raw_material_risk ?? ""} onChange={e => setF("raw_material_risk", (e.target.value || null) as SupplierRisk | null)}>
+                      <option value="">— Select —</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </Field>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -510,6 +531,21 @@ export default function SuppliersPage() {
           </div>
         </div>
       )}
+
+      {/* Risk Calculator Modal */}
+      <RiskCalculator
+        open={riskCalcOpen}
+        onClose={() => setRiskCalcOpen(false)}
+        supplierType={form.type}
+        saqCompleted={form.saq_completed}
+        hasCertification={!!form.certification && form.certification !== "None"}
+        onApply={({ raw_material_risk, supplier_risk, review_frequency_years, next_review_due }) => {
+          setF("raw_material_risk", raw_material_risk);
+          setF("supplier_risk", supplier_risk);
+          setF("review_frequency_years", review_frequency_years);
+          setF("next_review_due", next_review_due);
+        }}
+      />
     </>
   );
 }

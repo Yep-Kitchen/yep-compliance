@@ -44,7 +44,7 @@ const SECTIONS: SectionDef[] = [
       { id: "1_contact_position", text: "Job title / position", type: "text", required: true },
       { id: "1_tel", text: "Telephone number", type: "text", required: true },
       { id: "1_email", text: "Email address", type: "text", required: true },
-      { id: "1_products", text: "Products / services supplied to Yep Kitchen", type: "text", required: true },
+      { id: "1_products", text: "Products / services you supply to us", type: "text", required: true },
     ],
   },
   {
@@ -210,7 +210,7 @@ const SECTIONS: SectionDef[] = [
       { id: "16_declaration_name", text: "Full name of person completing this questionnaire", type: "text", required: true },
       { id: "16_declaration_position", text: "Job title / position", type: "text", required: true },
       { id: "16_declaration_date", text: "Date", type: "date", required: true },
-      { id: "16_additional_info", text: "Any additional information you would like to share with Yep Kitchen", type: "textarea", placeholder: "Optional" },
+      { id: "16_additional_info", text: "Any additional information you would like to share", type: "textarea", placeholder: "Optional" },
     ],
   },
 ];
@@ -319,7 +319,7 @@ export default function SAQPage() {
         {status === "not_found" && (
           <div className="py-24 text-center space-y-3">
             <p className="text-2xl font-serif text-brown font-bold">Link not found</p>
-            <p className="text-sm text-gray-500">This questionnaire link is invalid or has expired. Please contact Yep Kitchen.</p>
+            <p className="text-sm text-gray-500">This questionnaire link is invalid or has expired. Please contact the team who sent you this link.</p>
           </div>
         )}
 
@@ -330,7 +330,7 @@ export default function SAQPage() {
             <p className="text-sm text-gray-600">
               <span className="font-semibold">{supplier.name}</span> has already completed this self-assessment questionnaire.
             </p>
-            <p className="text-sm text-gray-400">If you believe this is an error, please contact Yep Kitchen.</p>
+            <p className="text-sm text-gray-400">If you believe this is an error, please contact the team who sent you this link.</p>
           </div>
         )}
 
@@ -339,7 +339,7 @@ export default function SAQPage() {
             <div className="text-5xl">✅</div>
             <p className="text-2xl font-serif text-brown font-bold">Thank you, {supplier.name}!</p>
             <p className="text-sm text-gray-600 max-w-sm mx-auto">
-              Your self-assessment has been received. Yep Kitchen will review your submission shortly.
+              Your self-assessment has been received and will be reviewed shortly.
             </p>
             <p className="text-sm text-gray-400">You can now close this window.</p>
           </div>

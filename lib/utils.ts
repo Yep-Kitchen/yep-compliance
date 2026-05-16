@@ -42,6 +42,15 @@ export function formatDateTime(iso: string): string {
   });
 }
 
+/** Returns today's Julian code in YYDDD format, e.g. "26136" for May 16 2026 */
+export function todayJulianCode(): string {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86_400_000);
+  const yy = String(now.getFullYear()).slice(-2);
+  return `${yy}${String(dayOfYear).padStart(3, "0")}`;
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "2-digit",

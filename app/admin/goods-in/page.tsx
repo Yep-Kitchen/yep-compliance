@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Ingredient, IngredientLot } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { formatDate, todayJulianCode } from "@/lib/utils";
 
 interface IngredientRow {
   ingredientId: string;
@@ -15,7 +15,7 @@ interface IngredientRow {
 }
 
 function emptyRow(): IngredientRow {
-  return { ingredientId: "", julianCode: "", bestBefore: "", quantityG: "", litres: "" };
+  return { ingredientId: "", julianCode: todayJulianCode(), bestBefore: "", quantityG: "", litres: "" };
 }
 
 interface Supplier { id: string; name: string }
@@ -229,14 +229,19 @@ export default function GoodsInPage() {
                       {errors[`name_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`name_${idx}`]}</p>}
                     </div>
 
-                    {/* Batch code */}
+                    {/* Julian code */}
                     <div>
-                      <label className="text-xs text-gray-500 block mb-0.5">Batch code *</label>
+                      <label className="text-xs text-gray-500 block mb-0.5">
+                        Julian code *
+                        {row.julianCode === todayJulianCode() && (
+                          <span className="ml-1.5 text-[10px] font-medium text-brown bg-brand/30 rounded-full px-1.5 py-0.5">today</span>
+                        )}
+                      </label>
                       <input
                         type="text"
                         value={row.julianCode}
                         onChange={e => updateRow(idx, "julianCode", e.target.value)}
-                        className={`input text-sm py-1.5 ${errors[`batch_${idx}`] ? "border-red-300" : ""}`}
+                        className={`input text-sm py-1.5 font-mono ${errors[`batch_${idx}`] ? "border-red-300" : ""}`}
                         placeholder="e.g. 26124"
                       />
                       {errors[`batch_${idx}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`batch_${idx}`]}</p>}

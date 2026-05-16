@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useState, useEffect } from "react";
 import type { Question, IngredientLot } from "@/lib/types";
+import { todayJulianCode } from "@/lib/utils";
 
 /** Local-state input for litres — lets the user type freely, converts to grams only on blur */
 function LitresInput({ weightG, density, onChange }: { weightG: string; density: number; onChange: (g: string) => void }) {
@@ -344,11 +345,11 @@ export default function QuestionField({ question, value, onChange, error, ingred
     if (rows.length !== ingredients.length) {
       rows = ingredients.map((ing, i) => ({
         name: ing.name,
-        lots: rows[i]?.lots ?? [{ lot_id: "", julian_code: "", weight_g: "" }],
+        lots: rows[i]?.lots ?? [{ lot_id: "", julian_code: todayJulianCode(), weight_g: "" }],
       }));
     }
 
-    const emptyLot: LotUse = { lot_id: "", julian_code: "", weight_g: "" };
+    const emptyLot: LotUse = { lot_id: "", julian_code: todayJulianCode(), weight_g: "" };
 
     const update = (newRows: IngRow[]) => onChange(JSON.stringify(newRows));
 
@@ -425,13 +426,22 @@ export default function QuestionField({ question, value, onChange, error, ingred
                         ))}
                       </select>
                     ) : (
-                      <input
-                        type="text"
-                        value={lotUse.julian_code}
-                        onChange={(e) => updateLot(ingIdx, lotIdx, "julian_code", e.target.value)}
-                        className="input flex-1 text-sm py-1.5"
-                        placeholder="Julian code (e.g. 26124)"
-                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={lotUse.julian_code}
+                            onChange={(e) => updateLot(ingIdx, lotIdx, "julian_code", e.target.value)}
+                            className="input w-full text-sm py-1.5 font-mono"
+                            placeholder="Julian code"
+                          />
+                          {lotUse.julian_code === todayJulianCode() && (
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-brown bg-brand/40 rounded-full px-1.5 py-0.5 pointer-events-none">
+                              today
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     )}
                     {density ? (
                       <>

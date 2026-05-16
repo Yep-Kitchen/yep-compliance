@@ -284,7 +284,7 @@ export default function TraceabilityPage() {
                 onClick={() => { setSearchType("lot"); setResult(null); setIngredientLots(null); setError(""); }}
                 className={`px-3 py-1.5 rounded text-xs font-medium transition ${searchType === "lot" ? "bg-brand text-brown" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
-                Raw material lot code
+                Raw material Julian code
               </button>
               <button
                 type="button"

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   }
 
   const token = await expectedToken();
-  const redirect = (from && from !== "/login") ? from : "/";
+  const redirect = (from && from !== "/login" && from !== "/") ? from : "/dashboard";
 
   const response = NextResponse.json({ ok: true, redirect });
   response.cookies.set("compliance_auth", token, {

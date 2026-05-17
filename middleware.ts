@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PREFIXES = ["/login", "/api/auth", "/_next", "/favicon.ico", "/logo.png"];
+const PUBLIC_PREFIXES = ["/login", "/api/auth", "/_next", "/favicon.ico", "/logo.png", "/kernel.png", "/kernel.svg", "/saq/"];
 
 async function expectedToken(): Promise<string> {
   const secret = process.env.AUTH_SECRET ?? "fallback-secret";
@@ -20,7 +20,7 @@ async function expectedToken(): Promise<string> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) {
+  if (pathname === "/" || PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 

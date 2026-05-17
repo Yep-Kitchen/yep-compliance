@@ -155,7 +155,7 @@ export default function SAQPage() {
       {/* Top bar */}
       <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="mx-auto max-w-3xl px-4 py-3 sm:px-6 flex items-center gap-3">
-          <img src="/kernel.svg" alt="Kernel" className="h-8 w-auto" />
+          <img src="/kernel.png" alt="Kernel" className="h-8 w-auto" />
           <span className="font-serif text-lg font-bold text-brown">Kernel</span>
           <span className="text-gray-300 text-sm">|</span>
           <span className="text-sm text-gray-500">Supplier Self-Assessment Questionnaire</span>
